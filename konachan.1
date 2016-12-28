@@ -1,0 +1,146 @@
+'\" t
+.\" Copyright (c) 2016, valdemar lindberg
+.\"
+.\" %%%LICENSE_START(GPLv3+_DOC_FULL)
+.\" This is free documentation; you can redistribute it and/or
+.\" modify it under the terms of the GNU General Public License as
+.\" published by the Free Software Foundation; either version 3 of
+.\" the License, or (at your option) any later version.
+.\"
+.\" The GNU General Public License's references to "object code"
+.\" and "executables" are to be interpreted as the output of any
+.\" document formatting or typesetting system, including
+.\" intermediate and printed output.
+.\"
+.\" This manual is distributed in the hope that it will be useful,
+.\" but WITHOUT ANY WARRANTY; without even the implied warranty of
+.\" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+.\" GNU General Public License for more details.
+.\"
+.\" You should have received a copy of the GNU General Public
+.\" License along with this manual; if not, see
+.\" <http://www.gnu.org/licenses/>.
+.\" %%%LICENSE_END
+
+.pc
+.TH konachan 1 "23 December 2016" "1.0" "User Commands"
+.SH NAME
+konachan - command line search tool.
+
+.SH SYNOPSIS
+.B konachan [ -SEns ]
+.B konachan [ -v ]
+
+.SH DESCRIPTION
+konachan is command line tool for fetching url and other attributes based on search input.
+Where it supports TLS/SSL and none secure mode.
+It sends a GET request to the host either by 80 or 443 depending if its a none-secure or secure connection. The returned data 
+will be in JSON. Where each element in the array of the JSON data will be extraced.
+
+.SH OPTIONS
+
+.SH 1. COMMAND-LINE Options
+.TP
+.B \-v
+Print the version of the command and exit.
+.TP
+.B \-s
+Flag for enabling secure connection. (Is enabled by default.) 
+.TP
+.B \-n
+Flag for disabling secrure connection. Where the communicate with HTTP only.
+.TP
+.B \-h
+Host to connect to. (Default is konachan.com)
+.TP
+.B \-l
+Limit of number of entries. (Default is 1)
+.TP
+.B \-p
+Offset in the result. (Default is 1)
+.TP
+.B \-t
+Search Tag, each tag has to be seperated by a space.
+.TP
+.B \-f
+What options the command shall extract from the fetched json data and print to STDOUT.
+.TP
+.B \-P
+Port to connect to the server. Default is 80 for non secure connection. 443 for a secure connection.
+.TP
+.B \-S
+Set searching rank mode to "safe-mode".
+.TP
+.B \-E
+Set searching rank mode to "explicit"
+
+
+
+.SH 2. FLAG Options
+.TP
+.Burl \-
+URL for the full sized image.
+.TP
+.Burl_size \-
+Get the url image size in bytes.
+.TP
+.Bpreview -\
+Get URL for the preview image. 
+.TP
+.Bpreview_size -\
+Get preview image size in bytes.
+.TP
+.Bsample -\
+Get sample URL.
+.TP
+.Bsample_size -\
+Get sample image size in bytes.
+.TP
+.Bjpeg -\
+Get JPEG image URL.
+.TP
+.Bjpeg_size -\
+Get size of the JPEG image in bytes.
+.TP
+.Bscore -\
+Return score for each of the search result entries.
+.TP
+.Bmd5 -\
+Return MD5 hash value from the full size URL image.
+.TP
+.Bid -\
+Return id of the search result from each entries.
+
+
+.SH EXIT STATUS
+If exist status is equal 0 than the program was exited successfully.
+
+
+.SH EXAMPLES
+Basic search example for getting the first preview image url in "safe-mode"
+.B konachan -t "cat" -f "preview" -S
+
+
+For searching in a non secure mode
+.BR konachan -t "cat" -f "preview" -n -S
+
+For searching with multiple tags.
+.BR konachan -t "cat cute" -f "preview" -S
+
+Download image by url fetch with konachan
+.BR wget $( konachan -t "cat cute" -f "preview" -S )
+
+
+.SH NOTES
+konachan is just a program for searching on konachan.com and fetch JSON data that is parsed and presented in STDOUT.
+
+
+.SH "SEE ALSO"
+.BR ssl(3),
+.BR socket(2)
+
+.SH BUGS
+No known bugs.
+
+.SH AUTHOR
+	Valdemar Lindberg (voldiekami@gmail.com)
