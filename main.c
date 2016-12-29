@@ -38,12 +38,12 @@
 /**
  *	Global variable.
  */
-char* host = "konachan.com";		/*	host. (Default konachan.com )	*/
-char* limit = "1";					/*	limit. ( 1 result by default)	*/
-int page = 0;						/*	page.	*/
-char* tags = NULL;					/*	tags.	*/
+char* host = "konachan.com";			/*	host. (Default konachan.com )	*/
+char* limit = "1";				/*	limit. ( 1 result by default)	*/
+int page = 0;					/*	page.	*/
+char* tags = NULL;				/*	tags.	*/
 unsigned int verbose = 1;			/*	verbose mode.	*/
-unsigned int flag = 0;				/*	flags.	*/
+unsigned int flag = 0x4;			/*	flags.	*/
 unsigned int port = 443;			/*	port to connect to. (Default HTTPS port).*/
 unsigned int secure = 1;			/*	security mode. (Default enabled.)	*/
 unsigned int verbosefd;				/*	verbose file description.	*/
