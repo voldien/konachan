@@ -122,7 +122,7 @@ unsigned int ratingmode = 0;		/*	Search rating. (Disable by default).	*/
  *	@Return get version string.
  */
 const char* getVersion(void){
-	return "1.0.1";
+	return "1.0.2";
 }
 
 /**
@@ -268,6 +268,8 @@ char* construct_tag_lvalue(const char* opts){
  */
 void read_flag_options(const char* optarg){
 
+	flag = 0;
+
 	if(strstr(optarg, FLAG_KEY_URL) != NULL){
 		flag |= FLAG_URL;
 	}
@@ -361,6 +363,7 @@ int main(int argc, char *const * argv){
 	int c;
 	int index;
 	const char* shortopt = "vh:l:p:t:f:P:snVESi:";
+	char* tmptags = NULL;
 
 	while( (c = getopt_long(argc, argv, shortopt, longoption, &index)) != EOF){
 
@@ -399,7 +402,7 @@ int main(int argc, char *const * argv){
 			break;
 		case 't':
 			if(optarg){
-				tags = construct_tag_lvalue(optarg);
+				tmptags = optarg;
 			}
 			break;
 		case 'f':
@@ -428,6 +431,15 @@ int main(int argc, char *const * argv){
 			break;
 		}
 
+	}
+
+
+	/*	*/
+	if( tmptags != NULL ){
+		tags = construct_tag_lvalue(tmptags);
+	}
+	else if(tags == NULL){
+		return EXIT_FAILURE;
 	}
 
 
