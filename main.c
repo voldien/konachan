@@ -122,7 +122,7 @@ unsigned int ratingmode = 0;			/*	Search rating. (Disable by default).	*/
  *	@Return get version string.
  */
 const char* getVersion(void){
-	return "1.0.2";
+	return "1.0.3";
 }
 
 /**
@@ -138,21 +138,6 @@ void verbose_printf(const char* format, ...){
 	}
 }
 
-const char* get_json_value_by_key(struct json_object* json, const char* key){
-
-	struct json_object* tmp;
-	char* tout;
-
-	tmp = json_object_object_get(json, key);
-
-	if(tmp){
-		tout = json_object_to_json_string(tmp);
-		simple_escape_str(tout);
-		return tout;
-	} else{
-		return "";
-	}
-}
 
 /**
  *
@@ -185,6 +170,28 @@ void simple_escape_str(char* str){
 
 
 }
+
+
+
+const char* get_json_value_by_key(struct json_object* json, const char* key){
+
+	struct json_object* tmp;
+	char* tout;
+	json_bool ret;
+
+	/**/
+	ret = json_object_object_get_ex(json, key, &tmp);
+
+	if(ret){
+		tout = json_object_to_json_string(tmp);
+		simple_escape_str(tout);
+		return tout;
+	} else{
+		return "";
+	}
+}
+
+
 
 /**
  *
@@ -331,6 +338,13 @@ int main(int argc, char *const * argv){
 	char cmd[8192];
 	char* json_serv;
 	char* json_str;
+
+	/*	*/
+	struct json_object* j1 = NULL;
+	struct json_object* j2 = NULL;
+	enum json_tokener_error json_error;
+	int i = 0;
+
 
 	/*	*/
 	struct sockaddr_in serv_addr;
@@ -562,10 +576,6 @@ int main(int argc, char *const * argv){
 
 
 	/*	Parse extracted JSON data.	*/
-	struct json_object* j1 = NULL;
-	struct json_object* j2 = NULL;
-	enum json_tokener_error json_error;
-	int i = 0;
 	j1 = json_tokener_parse_verbose(json_str, &json_error);
 
 	/*	Check parsing errors.	*/
