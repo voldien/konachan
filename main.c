@@ -47,7 +47,7 @@ unsigned int flag = 0x4;			/*	flags.	*/
 unsigned int port = 443;			/*	port to connect to. (Default HTTPS port).*/
 unsigned int secure = 1;			/*	security mode. (Default enabled.)	*/
 unsigned int verbosefd;				/*	verbose file description.	*/
-unsigned int ratingmode = 0;		/*	Search rating. (Disable by default).	*/
+unsigned int ratingmode = 0;			/*	Search rating. (Disable by default).	*/
 
 
 /**
@@ -427,7 +427,7 @@ int main(int argc, char *const * argv){
 		case 'E':
 			ratingmode |= MODE_EXPLICIT;
 			break;
-		default:	/*	Not such options.	*/
+		default:	/*	No such option.	*/
 			break;
 		}
 
