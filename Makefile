@@ -2,14 +2,19 @@
 
 RM := rm -f
 CP := cp
-ZIP := gzip
-INSTALL := install -s
+MKDIR := mkdir -p
+DESTDIR ?=
+PREFIX ?= /usr
+INSTALL_LOCATION=$(DESTDIR)$(PREFIX)
 CC ?= gcc
 CFLAGS := -O2
 CLIBS := -lssl -ljson-c
+
+#
 SRC = $(wildcard *.c)
 OBJS = $(notdir $(subst .c,.o,$(SRC)))
 TARGET ?= konachan
+VERSION := 1.0.3
 
 
 vpath %.c .
@@ -28,11 +33,18 @@ $(TARGET) : $(OBJS)
 	$(CC) $(CFLAGS) -c $^ -o $@
 
 
-install : $(TARGET)
+install : all
 	@echo "Instaling konachan.\n"
-	$(INSTALL) $^ /usr/local/bin/
-	$(ZIP) -ck konachan.1 > /usr/local/share/man/man1/konachan.1.gz
+	$(MKDIR) $(INSTALL_LOCATION)/bin
+	$(CP) $(TARGET) $(INSTALL_LOCATION)/bin
 
+
+distribution :
+	$(RM) -r konachan-$(VERSION)
+	$(MKDIR) konachan-$(VERSION)
+	$(CP) *.c Makefile README.md *.1 konachan-$(VERSION)
+	tar cf - konachan-$(VERSION) | gzip -9c > konachan-$(VERSION).tar.gz
+	$(RM) -r konachan-$(VERSION)
 
 clean :
 	$(RM) *.o
