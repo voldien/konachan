@@ -47,7 +47,7 @@ unsigned int flag = 0x4;			/*	flags.	*/
 unsigned int port = 443;			/*	port to connect to. (Default HTTPS port).*/
 unsigned int secure = 1;			/*	security mode. (Default enabled.)	*/
 unsigned int verbosefd;				/*	verbose file description.	*/
-unsigned int ratingmode = 0;			/*	Search rating. (Disable by default).	*/
+unsigned int ratingmode = 1;			/*	Search rating. (Safe by default.).	*/
 
 
 /**
@@ -122,7 +122,7 @@ unsigned int ratingmode = 0;			/*	Search rating. (Disable by default).	*/
  *	@Return get version string.
  */
 const char* getVersion(void){
-	return "1.0.3";
+	return "1.0.4";
 }
 
 /**
@@ -262,7 +262,7 @@ char* construct_tag_lvalue(const char* opts){
 	if(ratingmode == MODE_SAFE){
 		strcat(tag, "%20rating:safe" );
 	}
-	if(ratingmode == MODE_EXPLICIT){
+	else if(ratingmode == MODE_EXPLICIT){
 		strcat(tag, "%20rating:explicit" );
 	}
 
@@ -359,17 +359,17 @@ int main(int argc, char *const * argv){
 	/*	Get option for long options.	*/
 	static struct option longoption[] = {
 		{"version", 		no_argument, 		0, 'v'},
-		{"secure", 			no_argument, 		0, 's'},
+		{"secure", 		no_argument, 		0, 's'},
 		{"not-secure", 		no_argument, 		0, 'n'},
 		{"safe-mode", 		no_argument, 		0, 'S'},
 		{"explicit-mode",	no_argument, 		0, 'E'},
-		{"host", 			required_argument, 	0, 'h'},
-		{"limit", 			required_argument, 	0, 'l'},
-		{"page", 			required_argument, 	0, 'p'},
-		{"tags", 			required_argument, 	0, 't'},
-		{"flag", 			required_argument, 	0, 'f'},
-		{"port", 			required_argument, 	0, 'P'},
-		{"id", 				required_argument, 	0, 'i'},
+		{"host", 		required_argument, 	0, 'h'},
+		{"limit", 		required_argument, 	0, 'l'},
+		{"page", 		required_argument, 	0, 'p'},
+		{"tags", 		required_argument, 	0, 't'},
+		{"flag", 		required_argument, 	0, 'f'},
+		{"port", 		required_argument, 	0, 'P'},
+		{"id", 			required_argument, 	0, 'i'},
 
 		{NULL, 0, NULL, 0}
 	};
@@ -411,7 +411,7 @@ int main(int argc, char *const * argv){
 			break;
 		case 'P':
 			if(optarg){
-				port = strtol(optarg, NULL ,10);
+				port = strtol(optarg, NULL, 10);
 			}
 			break;
 		case 't':
@@ -436,10 +436,10 @@ int main(int argc, char *const * argv){
 			}
 			break;
 		case 'S':
-			ratingmode |= MODE_SAFE;
+			ratingmode = MODE_SAFE;
 			break;
 		case 'E':
-			ratingmode |= MODE_EXPLICIT;
+			ratingmode = MODE_EXPLICIT;
 			break;
 		default:	/*	No such option.	*/
 			break;
