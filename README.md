@@ -1,7 +1,7 @@
 konachan
 =========
 
-konachan is a terminal search tool for query information from [konachan](https://konachan.net)
+konachan is a terminal search tool for query information from [konachan](https://konachan.net).
 It uses HTTP/S for sending request to konachan.com. Where konachan returns
 a HTTP response along with JSON data that later gets parsed by using the json-c library. The values is extracted by the attribute names.
 To see a more detailed explanation of konachan's API see [konachan API](https://konachan.com/help/api) 
