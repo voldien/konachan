@@ -43,7 +43,7 @@ distribution :
 	$(RM) -r konachan-$(VERSION)
 	$(MKDIR) konachan-$(VERSION)
 	$(CP) *.c Makefile README.md *.1 konachan-$(VERSION)
-	tar cf - konachan-$(VERSION) | gzip -9c > konachan-$(VERSION).tar.gz
+	tar cf - konachan-$(VERSION) | gzip -c > konachan-$(VERSION).tar.gz
 	$(RM) -r konachan-$(VERSION)
 
 clean :
