@@ -34,7 +34,7 @@ $(TARGET) : $(OBJS)
 
 
 install : all
-	@echo "Instaling konachan.\n"
+	@echo "Installing konachan.\n"
 	$(MKDIR) $(INSTALL_LOCATION)/bin
 	$(CP) $(TARGET) $(INSTALL_LOCATION)/bin
 
