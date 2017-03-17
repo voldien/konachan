@@ -1,4 +1,4 @@
-konachan
+# konachan #
 ----
 
 konachan is a terminal search tool for query information from [konachan](https://konachan.net).
@@ -9,7 +9,7 @@ To see a more detailed explanation of konachan's API see [konachan API](https://
 For HTTPS, it uses TLSv1.2 for creating a secure connection and maintaining a secure connection with help of OpenSSL. 
 
 
-Examples
+## Examples ##
 ------
 1. Get first search result with the tag 'cat', print out previews url. ( preview url is the default return value)
 ```
@@ -33,7 +33,7 @@ konachan -t "cat" -f "preview score id"
 
 See konachan(1) for more details of what options are available.
 
-Dependencies
+## Dependencies ##
 ---------
 In order to compile the program, the following Debian packages has to be installed.
 ```
