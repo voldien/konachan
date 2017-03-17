@@ -1,5 +1,5 @@
 konachan
-=========
+----
 
 konachan is a terminal search tool for query information from [konachan](https://konachan.net).
 It uses HTTP/S for sending request to konachan.com. Where konachan returns
