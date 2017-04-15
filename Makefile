@@ -35,11 +35,11 @@ install : $(TARGET)
 
 
 distribution : $(TARGET)
-	$(RM) -r konachan-$(VERSION)
-	$(MKDIR) konachan-$(VERSION)
-	$(CP) *.c Makefile README.md *.1 konachan-$(VERSION)
-	tar cf - konachan-$(VERSION) | gzip -c > konachan-$(VERSION).tar.gz
-	$(RM) -r konachan-$(VERSION)
+	$(RM) -r $(TARGET)-$(VERSION)
+	$(MKDIR) $(TARGET)-$(VERSION)
+	$(CP) *.c Makefile README.md *.1 $(TARGET)-$(VERSION)
+	tar cf - $(TARGET)-$(VERSION) | gzip -c > $(TARGET)-$(VERSION).tar.gz
+	$(RM) -r $(TARGET)-$(VERSION)
 
 clean :
 	$(RM) *.o
