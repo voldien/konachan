@@ -307,7 +307,7 @@ void read_flag_options(const char* optarg, unsigned int** lorder,
 	char* whstr;
 
 	int optcount = 0;
-	unsigned int* porder;
+	unsigned int* porder = NULL;
 
 	/*	Iterate through each flag*/
 	hstr = optarg;
