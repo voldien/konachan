@@ -18,37 +18,50 @@
 */
 #include <errno.h>
 #include <getopt.h>
-#include <json-c/json.h>
-#include <json-c/json_object.h>
-#include <json-c/json_tokener.h>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <openssl/ossl_typ.h>
-#include <openssl/ssl.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <stdarg.h>
 #include <assert.h>
+#include <json-c/json.h>
+#include <json-c/json_object.h>
+#include <json-c/json_tokener.h>
+#include <zlib.h>
+#include <openssl/ossl_typ.h>
+#include <openssl/ssl.h>
+#include <openssl/crypto.h>
+#include <openssl/err.h>
 
+/**/
+extern const char* getVersion(void);
+extern void debug_printf(const char* format, ...);
+extern void simple_remove_escape_str(char* str);
+extern const char* get_json_value_by_key(struct json_object* json,
+		const char* key);
+extern char* simple_extract_json_body(char* str);
+extern char* simple_extract_html_header(char* str, int* headerlen);
+extern int http_use_gzip_encoding(const char* header);
+extern char* allocate_tag_header(size_t size);
+extern char* construct_tag_lvalue(const char* opts);
+extern void read_flag_options(const char* optarg, unsigned int** lorder,
+		unsigned int* count);
+extern unsigned int get_str_value_to_enum(const char* opt);
+extern void print_format(const char*);
 
 /**
- *	Global variable.
+ *	Global variables.
  */
-char* host = "konachan.com";			/*	host. (Default konachan.com )	*/
-char* limit = "1";				/*	limit. ( 1 result by default)	*/
-int page = 0;					/*	page.	*/
-char* tags = NULL;				/*	tags.	*/
+char* host = "konachan.com";		/*	host. (Default konachan.com )	*/
+char* limit = "1";					/*	limit. ( 1 result by default)	*/
+int page = 0;						/*	page.	*/
+char* tags = NULL;					/*	tags.	*/
 unsigned int verbose = 1;			/*	verbose mode.	*/
-unsigned int flag = 0x4;			/*	flags.	*/
+unsigned int kcg_debug = 0;			/*	debug mode.	*/
 unsigned int port = 443;			/*	port to connect to. (Default HTTPS port).*/
 unsigned int secure = 1;			/*	security mode. (Default enabled.)	*/
-unsigned int verbosefd;				/*	verbose file description.	*/
-unsigned int ratingmode = 1;			/*	Search rating. (Safe by default.).	*/
-
+unsigned int ratingmode = 1;		/*	Search rating. (Safe by default.).	*/
+unsigned int compression = 0;		/*	Use compression.	*/
 
 /**
  *	Flags.
@@ -68,8 +81,6 @@ unsigned int ratingmode = 1;			/*	Search rating. (Safe by default.).	*/
 #define FLAG_SCORE 0x1000			/*	Get source as a numeric digit.*/
 #define FLAG_MD5 0x2000				/*	Get hashed MD5 for the  .	*/
 #define FLAG_SOURCE 0x4000			/*	Get source of the object.	*/
-
-
 
 /**
  *	Flag keyword.
@@ -122,30 +133,29 @@ unsigned int ratingmode = 1;			/*	Search rating. (Safe by default.).	*/
  *	@Return get version string.
  */
 const char* getVersion(void){
-	return "1.0.4";
+	return "1.0.5";
 }
 
 /**
  *
  */
-void verbose_printf(const char* format, ...){
+void debug_printf(const char* format, ...){
 	va_list vl;
 
-	if(verbose == 1){
+	if(kcg_debug){
 		va_start(vl,format);
 		vfprintf(stderr, format, vl);	/*	TODO resolve file descriptor.	*/
 		va_end(vl);
 	}
 }
 
-
 /**
  *
  */
-void simple_escape_str(char* str){
+void simple_remove_escape_str(char* str){
 	char* pstr;
 
-	/*	convert \\/ to a / */
+	/*	Convert \\/ to a / */
 	pstr = str;
 	while(( pstr = strstr(pstr, "\\/")) != NULL){
 		*pstr = '/';
@@ -167,40 +177,36 @@ void simple_escape_str(char* str){
 		memmove(pstr, pstr + 2, strlen(pstr));
 		pstr++;
 	}
-
-
 }
-
 
 
 const char* get_json_value_by_key(struct json_object* json, const char* key){
 
-	struct json_object* tmp;
-	char* tout;
+	struct json_object* pvalue;
+	char* strvalue;
 	json_bool ret;
 
-	/**/
-	ret = json_object_object_get_ex(json, key, &tmp);
-
+	/*	*/
+	ret = json_object_object_get_ex(json, key, &pvalue);
 	if(ret){
-		tout = json_object_to_json_string(tmp);
-		simple_escape_str(tout);
-		return tout;
+		strvalue = json_object_to_json_string(pvalue);
+		simple_remove_escape_str(strvalue);
+		return strvalue;
 	} else{
 		return "";
 	}
 }
 
 
-
 /**
- *
+ *	Extract root json array.
  */
 char* simple_extract_json_body(char* str){
 
 	char* b = strchr(str, '[');
 	char* e = strrchr(str, ']');
 
+	/*	Terminate string.	*/
 	e++;
 	*e = '\0';
 
@@ -208,24 +214,43 @@ char* simple_extract_json_body(char* str){
 }
 
 
-
-/**
- *	@Return
- */
-char* simple_extract_html_body(char* str){
+char* simple_extract_html_header(char* str, int* headerlen){
 
 	const char* bc = "\r\n\r\n";
+	char* headerend;
+	int len;
+	char* header;
 
-	/*	Find beginning.	*/
-	str = strstr(str, bc);
-	str += strlen(bc);
+	/*	Find end of HTTP response header.	*/
+	headerend = strstr(str, bc);
+	headerend += sizeof(bc);
+	len = (headerend - str);
 
-	/*	Next line after a hexadecimal.	*/
-	str = strstr(str, "\n");
-	str[0] = '\0';
-	str++;
+	/*	Allocate string.	*/
+	header = malloc(len + 1);
+	memcpy(header, str, len + 1);
+	header[len] = '\0';
 
-	return str;
+	*headerlen = len;
+
+	return header;
+}
+
+/**
+ *	Check if content encoding set to gzip.
+ */
+int http_use_gzip_encoding(const char* header){
+
+	char buf[128];
+	char* res = strstr(header, "Content-Encoding:");
+	char* end;
+
+	if(res){
+		end = strstr(res, "\n");
+		memcpy(buf, res, end - res);
+		return strstr(buf, "gzip") != NULL ? 1 : 0;
+	}
+	return 0;
 }
 
 /**
@@ -244,8 +269,8 @@ char* allocate_tag_header(size_t size){
  *	interpret.
  */
 char* construct_tag_lvalue(const char* opts){
+
 	char* tag;
-	int len;
 
 	/*	*/
 	tag = allocate_tag_header(strlen(opts) + 1024);
@@ -255,7 +280,6 @@ char* construct_tag_lvalue(const char* opts){
 		*tmp = '+';
 		tmp++;
 	}
-	len = strlen(tag);
 	strcat(tag, "+");
 
 	/*	Rating.	*/
@@ -273,54 +297,90 @@ char* construct_tag_lvalue(const char* opts){
 /**
  *	Read flag options.
  */
-void read_flag_options(const char* optarg){
+void read_flag_options(const char* optarg, unsigned int** lorder,
+		unsigned int* count){
 
-	flag = 0;
+	const int tmplen = 128;
+	char* tmpstr;
+	int tmpstrlen;
+	const char* hstr;
+	char* whstr;
 
-	if(strstr(optarg, FLAG_KEY_URL) != NULL){
-		flag |= FLAG_URL;
+	int optcount = 0;
+	unsigned int* porder;
+
+	/*	Iterate through each flag*/
+	hstr = optarg;
+	tmpstr = malloc(tmplen);
+	memset(tmpstr, 0, 128);
+	while(hstr){
+		if(*hstr == ' '){
+			hstr++;
+		}else{
+			whstr = strstr(hstr, " ");
+			tmpstrlen = whstr ? whstr - hstr : (strlen(hstr));
+			memcpy(tmpstr, hstr, tmpstrlen);
+			tmpstr[tmpstrlen + 1] = '\0';
+
+			porder = (unsigned int*)realloc(porder, (optcount+ 1) * sizeof(unsigned int));
+			porder[optcount] = get_str_value_to_enum(tmpstr);
+			optcount++;
+
+			hstr = whstr;
+		}
 	}
-	if(strstr(optarg, FLAG_KEY_URL_SIZE) != NULL){
-		flag |= FLAG_URL_SIZE;
+
+	free(tmpstr);
+	*lorder = porder;
+	*count = optcount;
+}
+
+unsigned int get_str_value_to_enum(const char* opt){
+
+	if(strstr(opt, FLAG_KEY_URL) != NULL){
+		return FLAG_URL;
 	}
-	if(strstr(optarg, FLAG_KEY_PREVIEW_URL) != NULL){
-		flag |= FLAG_PREVIEW;
+	if(strstr(opt, FLAG_KEY_URL_SIZE) != NULL){
+		return FLAG_URL_SIZE;
 	}
-	if(strstr(optarg, FLAG_KEY_PREVIEW_SIZE) != NULL){
-		flag |= FLAG_PREVIEW_SIZE;
+	if(strstr(opt, FLAG_KEY_PREVIEW_URL) != NULL){
+		return FLAG_PREVIEW;
 	}
-	if(strstr(optarg, FLAG_KEY_SAMPLE_URL) != NULL){
-		flag |= FLAG_SAMPLE_URL;
+	if(strstr(opt, FLAG_KEY_PREVIEW_SIZE) != NULL){
+		return FLAG_PREVIEW_SIZE;
 	}
-	if(strstr(optarg, FLAG_KEY_SAMPLE_SIZE)!= NULL){
-		flag |= FLAG_SAMPLE_URL_SIZE;
+	if(strstr(opt, FLAG_KEY_SAMPLE_URL) != NULL){
+		return FLAG_SAMPLE_URL;
 	}
-	if(strstr(optarg, FLAG_KEY_TAGS) != NULL){
-		flag |= FLAG_TAGS;
+	if(strstr(opt, FLAG_KEY_SAMPLE_SIZE)!= NULL){
+		return FLAG_SAMPLE_URL_SIZE;
 	}
-	if(strstr(optarg, FLAG_KEY_ID) != NULL){
-		flag |= FLAG_ID;
+	if(strstr(opt, FLAG_KEY_TAGS) != NULL){
+		return FLAG_TAGS;
 	}
-	if(strstr(optarg, FLAG_KEY_JPEG_URL) != NULL){
-		flag |= FLAG_JPEG_URL;
+	if(strstr(opt, FLAG_KEY_ID) != NULL){
+		return FLAG_ID;
 	}
-	if(strstr(optarg, FLAG_KEY_JPEG_SIZE) != NULL){
-		flag |= FLAG_JPEG_SIZE;
+	if(strstr(opt, FLAG_KEY_JPEG_URL) != NULL){
+		return FLAG_JPEG_URL;
 	}
-	if(strstr(optarg, FLAG_KEY_PNG_URL) != NULL){
-		flag |= FLAG_PNG_URL;
+	if(strstr(opt, FLAG_KEY_JPEG_SIZE) != NULL){
+		return FLAG_JPEG_SIZE;
 	}
-	if(strstr(optarg, FLAG_KEY_PNG_SIZE) != NULL){
-		flag |= FLAG_PNG_SIZE;
+	if(strstr(opt, FLAG_KEY_PNG_URL) != NULL){
+		return FLAG_PNG_URL;
 	}
-	if(strstr(optarg, FLAG_KEY_SCORE) != NULL){
-		flag |= FLAG_SCORE;
+	if(strstr(opt, FLAG_KEY_PNG_SIZE) != NULL){
+		return FLAG_PNG_SIZE;
 	}
-	if(strstr(optarg, FLAG_KEY_MD5) != NULL){
-		flag |= FLAG_MD5;
+	if(strstr(opt, FLAG_KEY_SCORE) != NULL){
+		return FLAG_SCORE;
 	}
-	if(strstr(optarg, FLAG_KEY_SCORE) != NULL){
-		flag |= FLAG_SOURCE;
+	if(strstr(opt, FLAG_KEY_MD5) != NULL){
+		return FLAG_MD5;
+	}
+	if(strstr(opt, FLAG_KEY_SCORE) != NULL){
+		return FLAG_SOURCE;
 	}
 }
 
@@ -333,63 +393,86 @@ int main(int argc, char *const * argv){
 
 	/*	*/
 	int len;
-	int total = 0;
-	char inbuf[1024];
-	char cmd[8192];
-	char* json_serv;
+	int comlen;
+	int resp_len = 0;
+	char inbuf[4096];
+	char cmd[4096];
+	char* json_serv = NULL;
 	char* json_str;
+	unsigned int* forder = NULL;
+	unsigned int nflags;
 
-	/*	*/
+	/*	JSON response.	*/
 	struct json_object* j1 = NULL;
 	struct json_object* j2 = NULL;
 	enum json_tokener_error json_error;
 	int i = 0;
+	int j;
+	int g_flag;
 
+	/*	Reponse.	*/
+	int httphlen;
+	char* httpheader = NULL;
 
-	/*	*/
-	struct sockaddr_in serv_addr;
+	/*	Sockets.	*/
+	int s;
+	int af = AF_UNSPEC;
+	struct sockaddr_in addr4;
+	socklen_t soclen;
+	struct sockaddr_in6 addr6;
+	struct sockaddr* addr;
 	int sock;
-	struct hostent* server;
+	struct addrinfo hints;
+	struct addrinfo *result, *rp;
 
 	/*	Secure Socket layer for HTTP/S (Secure).	*/
 	SSL *conn = NULL;
 	SSL_CTX *ssl_ctx = NULL;
-
+	int sslcode = 0;
 
 	/*	Get option for long options.	*/
 	static struct option longoption[] = {
-		{"version", 		no_argument, 		0, 'v'},
-		{"secure", 		no_argument, 		0, 's'},
-		{"not-secure", 		no_argument, 		0, 'n'},
-		{"safe-mode", 		no_argument, 		0, 'S'},
-		{"explicit-mode",	no_argument, 		0, 'E'},
-		{"host", 		required_argument, 	0, 'h'},
-		{"limit", 		required_argument, 	0, 'l'},
-		{"page", 		required_argument, 	0, 'p'},
-		{"tags", 		required_argument, 	0, 't'},
-		{"flag", 		required_argument, 	0, 'f'},
-		{"port", 		required_argument, 	0, 'P'},
-		{"id", 			required_argument, 	0, 'i'},
-
+		{"version", 		no_argument, 		0, 'v'},	/*	Version of the program.*/
+		{"debug",			no_argument,		0, 'D'},	/*	Debug.	*/
+		{"secure", 			no_argument, 		0, 's'},	/*	Force Secure connection.	*/
+		{"not-secure", 		no_argument, 		0, 'n'},	/*	Force unsecure connection.	*/
+		{"compression",		no_argument,		0, 'C'},	/*	Enable compression.	*/
+		{"safe-mode", 		no_argument, 		0, 'S'},	/*	Set konachan safe mode.	*/
+		{"explicit-mode",	no_argument, 		0, 'E'},	/**/
+		{"host", 			required_argument, 	0, 'h'},	/*	Set host to connect to.	*/
+		{"limit", 			required_argument, 	0, 'l'},	/*	Set max number of result.	*/
+		{"page", 			required_argument, 	0, 'p'},	/*	Set page start search from.	*/
+		{"tags", 			required_argument, 	0, 't'},	/*	Tags used for searching.	*/
+		{"flag", 			required_argument, 	0, 'f'},	/*	Flag */
+		{"port", 			required_argument, 	0, 'P'},	/*	Change port for connecting to webserver.	*/
+		{"id", 				required_argument, 	0, 'i'},	/*	*/
 		{NULL, 0, NULL, 0}
 	};
 
 	int c;
 	int index;
-	const char* shortopt = "vh:l:p:t:f:P:snVESi:";
+	const char* shortopt = "vdh46l:p:t:f:P:snVESCi:";
 	char* tmptags = NULL;
 
 	while( (c = getopt_long(argc, argv, shortopt, longoption, &index)) != EOF){
 
 		switch(c){
 		case 'v':
-
 			printf("version %s\n", getVersion());
 			return EXIT_SUCCESS;
+		case 'd':
+			kcg_debug = 1;
+			break;
 		case 'h':
 			if(optarg){
 				host = optarg;
 			}
+			break;
+		case '4':
+			af = AF_INET;
+			break;
+		case '6':
+			af = AF_INET6;
 			break;
 		case 's':
 			secure = 1;
@@ -398,6 +481,9 @@ int main(int argc, char *const * argv){
 		case 'n':
 			secure = 0;
 			port = 80;
+			break;
+		case 'C':
+			compression = 1;
 			break;
 		case 'l':
 			if(optarg){
@@ -420,8 +506,8 @@ int main(int argc, char *const * argv){
 			}
 			break;
 		case 'f':
-			if(optarg){
-				read_flag_options(optarg);
+			if(optarg){	/*	Get list of there order.	*/
+				read_flag_options(optarg, &forder, &nflags);
 			}
 			break;
 		case 'i':
@@ -447,44 +533,82 @@ int main(int argc, char *const * argv){
 
 	}
 
-
-	/*	*/
+	/*	Construct tag string.	*/
 	if( tmptags != NULL ){
 		tags = construct_tag_lvalue(tmptags);
 	}
-	else if(tags == NULL){
+	if(forder == NULL){
+		read_flag_options("url", &forder, &nflags);
+	}
+	if(tags == NULL){
 		return EXIT_FAILURE;
 	}
-
-
-	sock = socket(AF_INET, SOCK_STREAM, 0);
-	if(sock < 0){
-		return EXIT_FAILURE;
-	}
-
-	/*	init addr.	*/
-	bzero(&serv_addr, sizeof(serv_addr));
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(port);
 
 
 	/*	*/
-	server = gethostbyname(host);
-	if(server == NULL){
+	hints.ai_family = af;
+	hints.ai_socktype = SOCK_STREAM; /* Datagram socket */
+	hints.ai_flags = AI_PASSIVE;    /* For wildcard IP address */
+	hints.ai_protocol = 0;          /* Any protocol */
+	hints.ai_canonname = NULL;
+	hints.ai_addr = NULL;
+	hints.ai_next = NULL;
+	s = getaddrinfo(host, NULL, &hints, &result);
+	if (s != 0) {
+	   fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
+	   exit(EXIT_FAILURE);
+	}
+
+	/*	Create socket.	*/
+	af = result->ai_family;
+	sock = socket(af, SOCK_STREAM, 0);
+	if(sock < 0){
+		fprintf(stderr, "socket failed, %s.\n", strerror(errno));
+		return EXIT_FAILURE;
+	}
+
+	/*	init socket address.	*/
+	switch(af){
+	case AF_INET:
+		bzero(&addr4, sizeof(addr4));
+		addr4.sin_family = AF_INET;
+		addr4.sin_port = htons(port);
+		/*	*/
+		bcopy( &((const struct sockaddr_in*)result->ai_addr)->sin_addr,
+		         (char*)&addr4.sin_addr.s_addr, 4);
+		addr = (struct sockaddr*)&addr4;
+		soclen = sizeof(addr4);
+		break;
+	case AF_INET6:
+		break;
+		addr6.sin6_family = AF_INET6;
+		addr6.sin6_port = htons(port);
+		addr = (struct sockaddr*)&addr6;
+		soclen = sizeof(addr6);
+		break;
+	default:
+		fprintf(stderr, "Invalid address family.\n");
 		close(sock);
 		return EXIT_FAILURE;
 	}
 
-	/*	*/
-	bcopy((const void*)server->h_addr,
-	         (char*)&serv_addr.sin_addr.s_addr,
-	         (size_t)server->h_length);
+	freeaddrinfo(result);
 
 
-	/*	ssl	*/
-	if( secure == 1 ){
+	/*	TCP connection.	*/
+	if( connect(sock, addr, soclen ) < 0 ){
+		fprintf(stderr, "Failed to connect to %s, %s\n", host, strerror(errno));
+		status = EXIT_FAILURE;
+		goto error;
+	}
+
+	/*	Use OpenSSL.	*/
+	if( secure ){
 		SSL_load_error_strings ();
-		SSL_library_init ();
+		if( SSL_library_init () < 0){
+			status = EXIT_FAILURE;
+			goto error;
+		}
 
 		/**/
 		ssl_ctx = SSL_CTX_new (TLSv1_2_client_method ());
@@ -493,29 +617,22 @@ int main(int argc, char *const * argv){
 			goto error;
 		}
 
+		SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
+
 		/* create an SSL connection and attach it to the socket	*/
 		conn = SSL_new(ssl_ctx);
 		if( SSL_set_fd(conn, sock) == 0){
 			status = EXIT_FAILURE;
 			goto error;
 		}
-	}
 
-
-	if( connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr) ) < 0 ){
-		fprintf(stderr, "Failed to connect to %s, %s\n", host, strerror(errno));
-		status = EXIT_FAILURE;
-		goto error;
-	}
-
-	/*	Connect by performing TLS/SSL handshake with server.	*/
-	if(secure == 1){
-		if( SSL_connect(conn) != 1 ){
+		/*	Connect by performing TLS/SSL handshake with server.	*/
+		if( (sslcode = SSL_connect(conn)) != 1 ){
+			fprintf(stderr, "Failed to SSL connect, code %d.\n", SSL_get_error(conn, sslcode));		/*	ERR_error_string(sslcode, NULL)	*/
 			status = EXIT_FAILURE;
 			goto error;
 		}
 	}
-
 
 	/*	Generate HTTP request.	*/
 	memset(cmd, 0, sizeof(cmd));
@@ -523,13 +640,17 @@ int main(int argc, char *const * argv){
 			"GET /post.json?tags=%s&page=%d&limit=%s HTTP/1.1 \r\n"
 			"Host: %s \r\n"
 			"%s"
-			"Accept-Encoding:gzip, deflate, sdch\r\n"
+			"Connection:close\r\n"
+			"Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\r\n"
+			"Accept-Encoding: %s\r\n"
 			"Accept-Language:en-US,en;q=0.8\r\n"
-			"Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8 \r\n"
-			"\r\n", tags, page, limit, host, secure ? "Referer: https://konachan.com/post \r\n" : "");
-
+			"\r\n",
+			tags, page, limit, host,
+			secure ? "Referer:https://konachan.com/post \r\n" : "",
+			compression ? "gzip, deflate, sdch"  : "");
 
 	/*	Send HTTP request.	*/
+	debug_printf(cmd);
 	if (secure == 1){
 		if( (len = SSL_write(conn, cmd, strlen(cmd) +1)) < 0){
 			status = EXIT_FAILURE;
@@ -537,43 +658,66 @@ int main(int argc, char *const * argv){
 		}
 	}
 	else {
-		if(write(sock, cmd, strlen(cmd) + 1) < 0){
+		if(write(sock, cmd, strlen(cmd)) < 0){
 			status = EXIT_FAILURE;
 			goto error;
 		}
 	}
 
-
-
 	/*	Fetch HTTP response.	*/
 	if(secure == 1){
 		while((len = SSL_read(conn, inbuf, sizeof(inbuf))) > 0){
-			total += len;
-			json_serv = realloc(json_serv, total);
-			memcpy(json_serv + ( total - len ), inbuf, len);
+			resp_len += len;
+			json_serv = realloc(json_serv, resp_len);
+			assert(json_serv);
+			memcpy(json_serv + ( resp_len - len ), inbuf, len);
 		}
 	}
 	else {
 		while((len = read(sock, inbuf, sizeof(inbuf))) > 0){
-			total += len;
-			json_serv = realloc(json_serv, total);
-			memcpy(json_serv + ( total - len ), inbuf, len);
+			resp_len += len;
+			json_serv = realloc(json_serv, resp_len);
+			assert(json_serv);
+			memcpy(json_serv + ( resp_len - len ), inbuf, len);
 		}
+
 	}
 
 	/*	Check if the fetch was successfully.	*/
-	if(json_serv == NULL || total < 0){
+	if(json_serv == NULL || resp_len == 0){
 		status = EXIT_FAILURE;
 		goto error;
 	}
 
+	/*	Add string terminator.	*/
+	json_serv = realloc(json_serv, resp_len + 1);
+	json_serv[resp_len] = '\0';
 
-	/*	Extract html */
-	json_str = simple_extract_html_body(json_serv);
+	/*	Parse HTTP's response header.	*/
+	httpheader = simple_extract_html_header(json_serv, &httphlen);
+	if(httpheader == NULL){
+		status = EXIT_FAILURE;
+		goto error;
+	}
+	debug_printf(httpheader);
+
+
+	/*	Extract html body.	*/
+	if(http_use_gzip_encoding(httpheader)){
+		comlen = 0;
+		while((len = uncompress(inbuf, sizeof(inbuf), (const uLongf*)(json_serv + httphlen),
+				(uLong)(resp_len - httphlen))) > 0){
+
+			json_str = realloc(json_str, comlen + len);
+			memcpy(json_str + comlen, inbuf, len);
+			comlen += len;
+		}
+	}else{
+		json_str = json_serv + httphlen;
+	}
 
 	/*	Extract JSON.	*/
 	json_str = simple_extract_json_body(json_str);
-
 
 	/*	Parse extracted JSON data.	*/
 	j1 = json_tokener_parse_verbose(json_str, &json_error);
@@ -585,57 +729,57 @@ int main(int argc, char *const * argv){
 		goto error;
 	}
 
-
 	/*	Extract value for each element in JSON array.	*/
 	while((j2 = json_object_array_get_idx(j1, i)) != NULL){
+		for(j = 0; j < nflags; j++){
+			g_flag = forder[j];
 
-		if(flag & FLAG_URL){
-			printf("%s ", get_json_value_by_key(j2, KEY_URL) );
+			if(g_flag & FLAG_URL){
+				printf("%s ", get_json_value_by_key(j2, KEY_URL) );
+			}
+			if(g_flag & FLAG_URL_SIZE){
+				printf("%s ", get_json_value_by_key(j2, KEY_URL_SIZE) );
+			}
+			if(g_flag & FLAG_PREVIEW){
+				printf("%s ", get_json_value_by_key(j2, KEY_PREVIEW) );
+			}
+			if(g_flag & FLAG_SAMPLE_URL){
+				printf("%s ", get_json_value_by_key(j2, KEY_SAMPLE_URL) );
+			}
+			if(g_flag & FLAG_SAMPLE_URL_SIZE){
+				printf("%s ", get_json_value_by_key(j2, KEY_SAMPLE_URL_SIZE) );
+			}
+			if(g_flag & FLAG_TAGS){
+				printf("%s ", get_json_value_by_key(j2, KEY_TAGS) );
+			}
+			if(g_flag & FLAG_ID){
+				printf("%s ", get_json_value_by_key(j2, KEY_ID) );
+			}
+			if(g_flag & FLAG_ID){
+				printf("%s ", get_json_value_by_key(j2, KEY_ID) );
+			}
+			if(g_flag & FLAG_JPEG_URL){
+				printf("%s ", get_json_value_by_key(j2, KEY_JPEG_URL) );
+			}
+			if(g_flag & FLAG_JPEG_SIZE){
+				printf("%s ", get_json_value_by_key(j2, KEY_JPEG_SIZE) );
+			}
+			if(g_flag & FLAG_PNG_URL){
+				printf("%s ", get_json_value_by_key(j2, KEY_PNG_URL) );
+			}
+			if(g_flag & FLAG_PNG_SIZE){
+				printf("%s ", get_json_value_by_key(j2, KEY_PNG_SIZE) );
+			}
+			if(g_flag & FLAG_SCORE){
+				printf("%s ", get_json_value_by_key(j2, KEY_SCORE) );
+			}
+			if(g_flag & FLAG_MD5){
+				printf("%s ", get_json_value_by_key(j2, KEY_MD5) );
+			}
+			if(g_flag & FLAG_SOURCE){
+				printf("%s ", get_json_value_by_key(j2, KEY_SOURCE) );
+			}
 		}
-		if(flag & FLAG_URL_SIZE){
-			printf("%s ", get_json_value_by_key(j2, KEY_URL_SIZE) );
-		}
-		if(flag & FLAG_PREVIEW){
-			printf("%s ", get_json_value_by_key(j2, KEY_PREVIEW) );
-		}
-		if(flag & FLAG_SAMPLE_URL){
-			printf("%s ", get_json_value_by_key(j2, KEY_SAMPLE_URL) );
-		}
-		if(flag & FLAG_SAMPLE_URL_SIZE){
-			printf("%s ", get_json_value_by_key(j2, KEY_SAMPLE_URL_SIZE) );
-		}
-		if(flag & FLAG_TAGS){
-			printf("%s ", get_json_value_by_key(j2, KEY_TAGS) );
-		}
-		if(flag & FLAG_ID){
-			printf("%s ", get_json_value_by_key(j2, KEY_ID) );
-		}
-		if(flag & FLAG_ID){
-			printf("%s ", get_json_value_by_key(j2, KEY_ID) );
-		}
-		if(flag & FLAG_JPEG_URL){
-			printf("%s ", get_json_value_by_key(j2, KEY_JPEG_URL) );
-		}
-		if(flag & FLAG_JPEG_SIZE){
-			printf("%s ", get_json_value_by_key(j2, KEY_JPEG_SIZE) );
-		}
-		if(flag & FLAG_PNG_URL){
-			printf("%s ", get_json_value_by_key(j2, KEY_PNG_URL) );
-		}
-		if(flag & FLAG_PNG_SIZE){
-			printf("%s ", get_json_value_by_key(j2, KEY_PNG_SIZE) );
-		}
-		if(flag & FLAG_SCORE){
-			printf("%s ", get_json_value_by_key(j2, KEY_SCORE) );
-		}
-		if(flag & FLAG_MD5){
-			printf("%s ", get_json_value_by_key(j2, KEY_MD5) );
-		}
-		if(flag & FLAG_SOURCE){
-			printf("%s ", get_json_value_by_key(j2, KEY_SOURCE) );
-		}
-
-
 		i++;
 	}
 
@@ -645,6 +789,8 @@ int main(int argc, char *const * argv){
 	json_object_put(j1);
 	free(tags);
 	free(json_serv);
+	free(httpheader);
+	free(forder);
 	if(secure == 1 && ssl_ctx != NULL){
 		SSL_shutdown(conn);
 		SSL_free(conn);

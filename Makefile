@@ -15,7 +15,7 @@ CLIBS := -lssl -ljson-c -lz
 SRC = $(wildcard *.c)
 OBJS = $(notdir $(subst .c,.o,$(SRC)))
 TARGET ?= konachan
-VERSION := 1.0.4
+VERSION := 1.0.5
 
 
 all : $(TARGET)
