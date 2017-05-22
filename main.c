@@ -62,6 +62,7 @@ unsigned int port = 443;			/*	port to connect to. (Default HTTPS port).*/
 unsigned int secure = 1;			/*	security mode. (Default enabled.)	*/
 unsigned int ratingmode = 1;		/*	Search rating. (Safe by default.).	*/
 unsigned int compression = 0;		/*	Use compression.	*/
+unsigned int randorder = 0;			/*	random order.	*/
 
 /**
  *	Flags.
@@ -290,6 +291,10 @@ char* construct_tag_lvalue(const char* opts){
 		strcat(tag, "%20rating:explicit" );
 	}
 
+	if(randorder == 1){
+		strcat(tag, "+order%3Arandom" );
+	}
+
 	return tag;
 }
 
@@ -439,6 +444,7 @@ int main(int argc, char *const * argv){
 		{"compression",		no_argument,		0, 'C'},	/*	Enable compression.	*/
 		{"safe-mode", 		no_argument, 		0, 'S'},	/*	Set konachan safe mode.	*/
 		{"explicit-mode",	no_argument, 		0, 'E'},	/**/
+		{"random",			no_argument, 		0, 'r'},	/*	Random order.	*/
 		{"host", 			required_argument, 	0, 'h'},	/*	Set host to connect to.	*/
 		{"limit", 			required_argument, 	0, 'l'},	/*	Set max number of result.	*/
 		{"page", 			required_argument, 	0, 'p'},	/*	Set page start search from.	*/
@@ -451,7 +457,7 @@ int main(int argc, char *const * argv){
 
 	int c;
 	int index;
-	const char* shortopt = "vdh46l:p:t:f:P:snVESCi:";
+	const char* shortopt = "vdh46l:p:t:f:P:snVErSCi:";
 	char* tmptags = NULL;
 
 	while( (c = getopt_long(argc, argv, shortopt, longoption, &index)) != EOF){
@@ -526,6 +532,9 @@ int main(int argc, char *const * argv){
 			break;
 		case 'E':
 			ratingmode = MODE_EXPLICIT;
+			break;
+		case 'r':
+			randorder = 1;
 			break;
 		default:	/*	No such option.	*/
 			break;
