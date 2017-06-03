@@ -48,7 +48,7 @@ Print the version of the command and exit.
 Flag for enabling secure connection. (Is enabled by default.) 
 .TP
 .B \-n
-Flag for disabling secrure connection. Where the communicate with HTTP only.
+Flag for disabling secrure connection. Where it communicate with HTTP only. ( Using port 80 by default)
 .TP
 .B \-h
 Host to connect to. (Default is konachan.com)
@@ -57,58 +57,60 @@ Host to connect to. (Default is konachan.com)
 Limit of number of entries. (Default is 1)
 .TP
 .B \-p
-Offset in the result. (Default is 1)
+Offset in the search result. (Default is 1)
 .TP
 .B \-t
-Search Tag, each tag has to be seperated by a space.
+Search Tag, each tag has to be seperated by whitespace.
 .TP
 .B \-f
-What options the command shall extract from the fetched json data and print to STDOUT.
+What options the command shall extract from the fetched json data and print to STDOUT, each option flag has to be seperated by whitespace.
 .TP
 .B \-P
-Port to connect to the server. Default is 80 for non secure connection. 443 for a secure connection.
+Port to connect to the server. Default is 80 for non secure connection (HTTP). 443 for a secure connection (HTTPS).
 .TP
 .B \-S
 Set searching rank mode to "safe-mode".
 .TP
 .B \-E
-Set searching rank mode to "explicit"
-
+Set searching rank mode to "explicit".
+.TP
+.B \-r
+Request the query result to be of random order.
 
 
 .SH 2. FLAG Options
 .TP
-.Burl \-
+.B url
 URL for the full sized image.
+\#.TP
+\#.B url_size
+\#Get the url image size in bytes.
 .TP
-.Burl_size \-
-Get the url image size in bytes.
-.TP
-.Bpreview -\
+.B preview
 Get URL for the preview image. 
 .TP
-.Bpreview_size -\
+.B preview_size
 Get preview image size in bytes.
 .TP
-.Bsample -\
+.B sample
 Get sample URL.
 .TP
-.Bsample_size -\
+.B sample_size
 Get sample image size in bytes.
 .TP
-.Bjpeg -\
+.B jpeg
 Get JPEG image URL.
 .TP
-.Bjpeg_size -\
+.B jpeg_size
 Get size of the JPEG image in bytes.
 .TP
-.Bscore -\
+.B score
 Return score for each of the search result entries.
 .TP
-.Bmd5 -\
+.B md5
 Return MD5 hash value from the full size URL image.
 .TP
-.Bid -\
+.B id
 Return id of the search result from each entries.
 
 
@@ -116,31 +118,38 @@ Return id of the search result from each entries.
 If exist status is equal 0 than the program was exited successfully.
 
 
-.SH EXAMPLES
-Basic search example for getting the first preview image url in "safe-mode"
-.B konachan -t "cat" -f "preview" -S
+\#.SH EXAMPLES
+\#Basic search example for getting the first preview image url in "safe-mode"
+\#.B konachan -t "cat" -f "preview" -S
 
+\#.PD
+\#For searching in a non secure mode
+\#.B konachan -t "cat" -f "preview" -n -S
 
-For searching in a non secure mode
-.BR konachan -t "cat" -f "preview" -n -S
+\#.PD
+\#For searching with multiple tags.
+\#.B konachan -t "cat cute" -f "preview" -S
 
-For searching with multiple tags.
-.BR konachan -t "cat cute" -f "preview" -S
-
-Download image by url fetch with konachan
-.BR wget $( konachan -t "cat cute" -f "preview" -S )
+\#.PD
+\#Download image by url fetch with konachan
+\#.B wget $( konachan -t "cat cute" -f "preview" -S )
 
 
 .SH NOTES
-konachan is just a program for searching on konachan.com and fetch JSON data that is parsed and presented in STDOUT.
+konachan is just a program for searching on 
+\fIhttps://www.konachan.com\fR\|
+and fetch JSON data that is parsed and presented in STDOUT.
 
 
 .SH "SEE ALSO"
-.BR ssl(3),
-.BR socket(2)
+\&\fIssl\fR\|(3), \fIsocket\fR\|(2)\&
+.TP
+Visit
+\&\fIhttps://www.konachan.com/help/api\fR\|
+for further understanding of konachan's API works and how this tools query information from konachan.com.
 
 .SH BUGS
-No known bugs.
+No known bugs
 
 .SH AUTHOR
 	Valdemar Lindberg (voldiekami@gmail.com)
