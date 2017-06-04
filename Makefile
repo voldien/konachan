@@ -32,12 +32,13 @@ install : $(TARGET)
 	@echo "Installing konachan.\n"
 	$(MKDIR) $(INSTALL_LOCATION)/bin
 	$(CP) $(TARGET) $(INSTALL_LOCATION)/bin
+	$(CP) konachan.bc /etc/bash_completion.d/konachan
 
 
 distribution : $(TARGET)
 	$(RM) -r $(TARGET)-$(VERSION)
 	$(MKDIR) $(TARGET)-$(VERSION)
-	$(CP) *.c Makefile README.md *.1 $(TARGET)-$(VERSION)
+	$(CP) *.c Makefile README.md *.1 konachan.bc $(TARGET)-$(VERSION)
 	tar cf - $(TARGET)-$(VERSION) | gzip -c > $(TARGET)-$(VERSION).tar.gz
 	$(RM) -r $(TARGET)-$(VERSION)
 
