@@ -1,0 +1,17 @@
+# bash completion for konachan(1)
+
+
+_konachan() 
+{
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    opts="--version --secure --not-secure --host --limit --page --tags --flag --port --safe-mode --explicit-mode --random"
+
+    if [[ ${cur} == -* ]] ; then
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+        return 0
+    fi
+}
+complete -F _konachan konachan
