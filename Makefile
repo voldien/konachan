@@ -1,5 +1,12 @@
 #!/bin/bash
-#
+
+# Version
+MAJOR := 1
+MINOR := 0
+PATCH := 6
+STATE := a
+VERSION := $(MAJOR).$(MINOR)$(STATE)$(PATCH)
+# Utilitys
 RM := rm -f
 CP := cp
 MKDIR := mkdir -p
@@ -9,14 +16,12 @@ PREFIX ?= /usr
 INSTALL_LOCATION=$(DESTDIR)$(PREFIX)
 #
 CC ?= gcc
-CFLAGS := -O2
+CFLAGS := -O2 -DKONACHAN_STR_VERSION=\"$(VERSION)\"
 CLIBS := -lssl -ljson-c -lz
 #
 SRC = $(wildcard *.c)
 OBJS = $(notdir $(subst .c,.o,$(SRC)))
 TARGET ?= konachan
-VERSION := 1.0.5
-
 
 all : $(TARGET)
 	@echo "Finished making $(TARGET) \n"
