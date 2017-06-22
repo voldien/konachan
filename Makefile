@@ -21,6 +21,7 @@ VERSION := 1.0.5
 all : $(TARGET)
 	@echo "Finished making $(TARGET) \n"
 
+$(TARGET) : CFLAGS += -DNDEBUG
 $(TARGET) : $(OBJS)
 	$(CC) $(CLFAGS) $^ -o $@ $(CLIBS)
 
