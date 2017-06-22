@@ -134,7 +134,7 @@ unsigned int randorder = 0;			/*	random order.	*/
  *	@Return get version string.
  */
 const char* getVersion(void){
-	return "1.0.5";
+	return KONACHAN_STR_VERSION;
 }
 
 /**
