@@ -33,7 +33,9 @@
 #include <openssl/crypto.h>
 #include <openssl/err.h>
 
-/**/
+/**
+ *	Forward function declaration.
+ */
 extern const char* getVersion(void);
 extern void debug_printf(const char* format, ...);
 extern void simple_remove_escape_str(char* str);
