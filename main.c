@@ -50,6 +50,7 @@ extern void read_flag_options(const char* optarg, unsigned int** lorder,
 		unsigned int* count);
 extern unsigned int get_str_value_to_enum(const char* opt);
 extern void print_format(const char*);
+extern const char* get_http_filename(unsigned int mode);
 
 /**
  *
@@ -57,6 +58,12 @@ extern void print_format(const char*);
 extern const char* flag_name_table[];
 extern const unsigned int flag_value_table[];
 extern const char* flag_name_key_table[];
+
+/**
+ *	Konachan mode.
+ */
+#define MODE_POST	0x1		/*	Get post information.	*/
+#define MODE_TAG	0x2		/*	Get tag information.	*/
 
 /**
  *	Global variables.
@@ -72,6 +79,13 @@ unsigned int secure = 1;			/*	security mode. (Default enabled.)	*/
 unsigned int ratingmode = 1;		/*	Search rating. (Safe by default.).	*/
 unsigned int compression = 0;		/*	Use compression.	*/
 unsigned int randorder = 0;			/*	random order.	*/
+unsigned int g_mode = MODE_POST;
+
+/**
+ *	Global constant variables.
+ */
+const char* post_tag_json = "post.json";
+const char* tags_tag_json = "tag.json";
 
 /**
  *	Flags.
@@ -433,6 +447,17 @@ unsigned int get_str_value_to_enum(const char* opt){
 	return 0;
 }
 
+
+const char* get_http_filename(unsigned int mode){
+	switch(mode){
+	case MODE_POST:
+		return post_tag_json;
+	case MODE_TAG:
+		return tags_tag_json;
+	default:
+		return "";
+	}
+}
 
 
 int main(int argc, char *const * argv){
