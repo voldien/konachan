@@ -792,7 +792,7 @@ int main(int argc, char *const * argv){
 	/*	Extract html body.	*/
 	if(http_use_gzip_encoding(httpheader)){
 		comlen = 0;
-		while((len = uncompress(inbuf, sizeof(inbuf), (const uLongf*)(json_serv + httphlen),
+		while((len = uncompress(inbuf, sizeof(inbuf), (const Bytef*)(json_serv + httphlen),
 				(uLong)(resp_len - httphlen))) > 0){
 
 			json_str = realloc(json_str, comlen + len);
