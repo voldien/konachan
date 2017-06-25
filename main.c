@@ -45,7 +45,7 @@ extern char* simple_extract_json_body(char* str);
 extern char* simple_extract_html_header(char* str, int* headerlen);
 extern int http_use_gzip_encoding(const char* header);
 extern char* allocate_tag_header(size_t size);
-extern char* construct_tag_lvalue(const char* opts);
+extern char* construct_tag_lvalue(const char* opts, unsigned int rating);
 extern void read_flag_options(const char* optarg, unsigned int** lorder,
 		unsigned int* count);
 extern unsigned int get_str_value_to_enum(const char* opt);
@@ -362,7 +362,7 @@ char* allocate_tag_header(size_t size){
  *	Construct tag string for HTTP can
  *	interpret.
  */
-char* construct_tag_lvalue(const char* opts){
+char* construct_tag_lvalue(const char* opts, unsigned int rating){
 
 	char* tag;
 
@@ -374,13 +374,16 @@ char* construct_tag_lvalue(const char* opts){
 		*tmp = '+';
 		tmp++;
 	}
-	strcat(tag, "+");
+
+	if(rating > 0 || randorder > 0){
+		strcat(tag, "+");
+	}
 
 	/*	Rating.	*/
-	if(ratingmode == MODE_SAFE){
+	if(rating == MODE_SAFE){
 		strcat(tag, "%20rating:safe" );
 	}
-	else if(ratingmode == MODE_EXPLICIT){
+	else if(rating == MODE_EXPLICIT){
 		strcat(tag, "%20rating:explicit" );
 	}
 
@@ -616,8 +619,8 @@ int main(int argc, char *const * argv){
 	}
 
 	/*	Construct tag string.	*/
-	if( tmptags != NULL ){
-		tags = construct_tag_lvalue(tmptags);
+	if( tmptags != NULL){
+		tags = construct_tag_lvalue(tmptags, g_mode == MODE_POST ? ratingmode : 0);
 	}
 	if(forder == NULL){
 		read_flag_options("url", &forder, &nflags);
