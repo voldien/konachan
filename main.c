@@ -419,51 +419,16 @@ void read_flag_options(const char* optarg, unsigned int** lorder,
 
 unsigned int get_str_value_to_enum(const char* opt){
 
-	if(strstr(opt, FLAG_KEY_URL) != NULL){
-		return FLAG_URL;
-	}
-	if(strstr(opt, FLAG_KEY_URL_SIZE) != NULL){
-		return FLAG_URL_SIZE;
-	}
-	if(strstr(opt, FLAG_KEY_PREVIEW_URL) != NULL){
-		return FLAG_PREVIEW;
-	}
-	if(strstr(opt, FLAG_KEY_PREVIEW_SIZE) != NULL){
-		return FLAG_PREVIEW_SIZE;
-	}
-	if(strstr(opt, FLAG_KEY_SAMPLE_URL) != NULL){
-		return FLAG_SAMPLE_URL;
-	}
-	if(strstr(opt, FLAG_KEY_SAMPLE_SIZE)!= NULL){
-		return FLAG_SAMPLE_URL_SIZE;
-	}
-	if(strstr(opt, FLAG_KEY_TAGS) != NULL){
-		return FLAG_TAGS;
-	}
-	if(strstr(opt, FLAG_KEY_ID) != NULL){
-		return FLAG_ID;
-	}
-	if(strstr(opt, FLAG_KEY_JPEG_URL) != NULL){
-		return FLAG_JPEG_URL;
-	}
-	if(strstr(opt, FLAG_KEY_JPEG_SIZE) != NULL){
-		return FLAG_JPEG_SIZE;
-	}
-	if(strstr(opt, FLAG_KEY_PNG_URL) != NULL){
-		return FLAG_PNG_URL;
-	}
-	if(strstr(opt, FLAG_KEY_PNG_SIZE) != NULL){
-		return FLAG_PNG_SIZE;
-	}
-	if(strstr(opt, FLAG_KEY_SCORE) != NULL){
-		return FLAG_SCORE;
-	}
-	if(strstr(opt, FLAG_KEY_MD5) != NULL){
-		return FLAG_MD5;
-	}
-	if(strstr(opt, FLAG_KEY_SCORE) != NULL){
-		return FLAG_SOURCE;
-	}
+	int i = 0;
+
+	do{
+		if(strstr(opt,flag_name_table[i])){
+			return flag_value_table[i];
+		}
+		i++;
+	}while(flag_name_table[i]);
+
+	return 0;
 }
 
 
