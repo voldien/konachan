@@ -159,6 +159,7 @@ const char* flag_name_table[] = {
 	FLAG_KEY_MD5,
 	FLAG_KEY_SOURCE,
 	FLAG_KEY_NAME,
+	NULL
 };
 
 /**
@@ -203,6 +204,7 @@ const char* flag_name_key_table[] = {
 	KEY_MD5,
 	KEY_SOURCE,
 	KEY_NAME,
+	NULL
 };
 
 
