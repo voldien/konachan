@@ -863,6 +863,9 @@ int main(int argc, char *const * argv){
 			if(g_flag & FLAG_SOURCE){
 				printf("%s ", get_json_value_by_key(j2, KEY_SOURCE) );
 			}
+			if(g_flag & FLAG_NAME){
+				printf("%s ", get_json_value_by_key(j2, KEY_NAME) );
+			}
 		}
 		i++;
 	}
