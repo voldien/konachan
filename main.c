@@ -514,6 +514,7 @@ int main(int argc, char *const * argv){
 		{"safe-mode", 		no_argument, 		0, 'S'},	/*	Set konachan safe mode.	*/
 		{"explicit-mode",	no_argument, 		0, 'E'},	/**/
 		{"random",			no_argument, 		0, 'r'},	/*	Random order.	*/
+		{"tag-list",		no_argument,		0, 'T'},	/*	List tags.	*/
 		{"host", 			required_argument, 	0, 'h'},	/*	Set host to connect to.	*/
 		{"limit", 			required_argument, 	0, 'l'},	/*	Set max number of result.	*/
 		{"page", 			required_argument, 	0, 'p'},	/*	Set page start search from.	*/
@@ -526,7 +527,7 @@ int main(int argc, char *const * argv){
 
 	int c;
 	int index;
-	const char* shortopt = "vdh46l:p:t:f:P:snVErSCi:";
+	const char* shortopt = "vdh46l:p:t:f:P:snVErSCi:T";
 	char* tmptags = NULL;
 
 	while( (c = getopt_long(argc, argv, shortopt, longoption, &index)) != EOF){
@@ -604,6 +605,9 @@ int main(int argc, char *const * argv){
 			break;
 		case 'r':
 			randorder = 1;
+			break;
+		case 'T':
+			g_mode = MODE_TAG;
 			break;
 		default:	/*	No such option.	*/
 			break;
@@ -715,7 +719,7 @@ int main(int argc, char *const * argv){
 	/*	Generate HTTP request.	*/
 	memset(cmd, 0, sizeof(cmd));
 	sprintf(cmd,
-			"GET /post.json?tags=%s&page=%d&limit=%s HTTP/1.1 \r\n"
+			"GET /%s?%s=%s&page=%d&limit=%s HTTP/1.1 \r\n"
 			"Host: %s \r\n"
 			"%s"
 			"Connection:close\r\n"
@@ -723,6 +727,8 @@ int main(int argc, char *const * argv){
 			"Accept-Encoding: %s\r\n"
 			"Accept-Language:en-US,en;q=0.8\r\n"
 			"\r\n",
+			get_http_filename(g_mode),
+			(g_mode == MODE_POST ? "tags" : "name"),
 			tags, page, limit, host,
 			secure ? "Referer:https://konachan.com/post \r\n" : "",
 			compression ? "gzip, deflate, sdch"  : "");
