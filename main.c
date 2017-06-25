@@ -52,6 +52,13 @@ extern unsigned int get_str_value_to_enum(const char* opt);
 extern void print_format(const char*);
 
 /**
+ *
+ */
+extern const char* flag_name_table[];
+extern const unsigned int flag_value_table[];
+extern const char* flag_name_key_table[];
+
+/**
  *	Global variables.
  */
 char* host = "konachan.com";		/*	host. (Default konachan.com )	*/
@@ -129,6 +136,74 @@ unsigned int randorder = 0;			/*	random order.	*/
 #define KEY_SCORE "score"
 #define KEY_MD5 "md5"
 #define KEY_SOURCE "source"
+#define KEY_NAME "name"
+
+
+/**
+ *
+ */
+const char* flag_name_table[] = {
+	FLAG_KEY_URL,
+	FLAG_KEY_URL_SIZE,
+	FLAG_KEY_PREVIEW_URL,
+	FLAG_KEY_PREVIEW_SIZE,
+	FLAG_KEY_SAMPLE_URL,
+	FLAG_KEY_SAMPLE_SIZE,
+	FLAG_KEY_TAGS,
+	FLAG_KEY_ID,
+	FLAG_KEY_JPEG_URL,
+	FLAG_KEY_JPEG_SIZE,
+	FLAG_KEY_PNG_URL,
+	FLAG_KEY_PNG_SIZE,
+	FLAG_KEY_SCORE,
+	FLAG_KEY_MD5,
+	FLAG_KEY_SOURCE,
+	FLAG_KEY_NAME,
+};
+
+/**
+ *
+ */
+const unsigned int flag_value_table[] = {
+	FLAG_URL,
+	FLAG_URL_SIZE,
+	FLAG_PREVIEW,
+	FLAG_PREVIEW_SIZE,
+	FLAG_SAMPLE_URL,
+	FLAG_SAMPLE_URL_SIZE,
+	FLAG_TAGS,
+	FLAG_ID,
+	FLAG_JPEG_URL,
+	FLAG_JPEG_SIZE,
+	FLAG_PNG_URL,
+	FLAG_PNG_SIZE,
+	FLAG_SCORE,
+	FLAG_MD5,
+	FLAG_SOURCE,
+	FLAG_NAME,
+};
+
+/**
+ *
+ */
+const char* flag_name_key_table[] = {
+	KEY_URL,
+	KEY_URL_SIZE,
+	KEY_PREVIEW,
+	KEY_PREVIEW_SIZE,
+	KEY_SAMPLE_URL,
+	KEY_SAMPLE_URL_SIZE,
+	KEY_TAGS,
+	KEY_ID,
+	KEY_JPEG_URL,
+	KEY_JPEG_SIZE,
+	KEY_PNG_URL,
+	KEY_PNG_SIZE,
+	KEY_SCORE,
+	KEY_MD5,
+	KEY_SOURCE,
+	KEY_NAME,
+};
 
 
 
