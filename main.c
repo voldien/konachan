@@ -124,6 +124,7 @@ const char* tags_tag_json = "tag.json";
 #define FLAG_KEY_SCORE "score"
 #define FLAG_KEY_MD5 "md5"
 #define FLAG_KEY_SOURCE "source"
+#define FLAG_KEY_NAME "name"
 
 /**
  *	Rating mode
