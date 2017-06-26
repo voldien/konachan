@@ -53,7 +53,7 @@ extern void print_format(const char*);
 extern const char* get_http_filename(unsigned int mode);
 
 /**
- *
+ *	Forward variable decleration.
  */
 extern const char* flag_name_table[];
 extern const unsigned int flag_value_table[];
@@ -88,23 +88,24 @@ const char* post_tag_json = "post.json";
 const char* tags_tag_json = "tag.json";
 
 /**
- *	Flags.
+ *	Option flags.
  */
-#define FLAG_URL 0x1				/*	Get url.	*/
-#define FLAG_URL_SIZE 0x2			/*	Get url size in bytes.	*/
-#define FLAG_PREVIEW 0x4			/*	Get preview.*/
-#define FLAG_PREVIEW_SIZE 0x8		/*	Not supported.	*/
-#define FLAG_SAMPLE_URL 0x10		/*	Get sample url.	*/
-#define FLAG_SAMPLE_URL_SIZE 0x20	/*	Get sample size in bytes.	*/
-#define FLAG_TAGS 0x40				/*	Get tags associated with result.	*/
-#define FLAG_ID 0x80				/*	Get the ID of the object.	*/
-#define FLAG_JPEG_URL 0x100			/*	Get JPEG url if exists.	*/
-#define FLAG_JPEG_SIZE 0x200		/*	Get JPEG size in bytes if exits.	*/
-#define FLAG_PNG_URL 0x400			/*	Not supported.	*/
-#define FLAG_PNG_SIZE 0x800			/*	Not supported.	*/
-#define FLAG_SCORE 0x1000			/*	Get source as a numeric digit.*/
-#define FLAG_MD5 0x2000				/*	Get hashed MD5 for the  .	*/
-#define FLAG_SOURCE 0x4000			/*	Get source of the object.	*/
+#define FLAG_URL 				0x1		/*	Get url.	*/
+#define FLAG_URL_SIZE			0x2		/*	Get url size in bytes.	*/
+#define FLAG_PREVIEW			0x4		/*	Get preview.*/
+#define FLAG_PREVIEW_SIZE 		0x8		/*	Not supported.	*/
+#define FLAG_SAMPLE_URL 		0x10	/*	Get sample url.	*/
+#define FLAG_SAMPLE_URL_SIZE 	0x20	/*	Get sample size in bytes.	*/
+#define FLAG_TAGS 				0x40	/*	Get tags associated with result.	*/
+#define FLAG_ID 				0x80	/*	Get the ID of the object.	*/
+#define FLAG_JPEG_URL 			0x100	/*	Get JPEG url if exists.	*/
+#define FLAG_JPEG_SIZE 			0x200	/*	Get JPEG size in bytes if exits.	*/
+#define FLAG_PNG_URL 			0x400	/*	Not supported.	*/
+#define FLAG_PNG_SIZE 			0x800	/*	Not supported.	*/
+#define FLAG_SCORE 				0x1000	/*	Get source as a numeric digit.*/
+#define FLAG_MD5 				0x2000	/*	Get hashed MD5 for the  .	*/
+#define FLAG_SOURCE 			0x4000	/*	Get source of the object.	*/
+#define FLAG_NAME				0x8000	/*	Get tag name.	*/
 
 /**
  *	Flag keyword.
@@ -129,12 +130,11 @@ const char* tags_tag_json = "tag.json";
 /**
  *	Rating mode
  */
-#define MODE_SAFE 0x1
-#define MODE_EXPLICIT 0x2
-
+#define MODE_SAFE		0x1	/*	Safe mode.	*/
+#define MODE_EXPLICIT	0x2	/*	Explicit mode.	*/
 
 /**
- *	JSON attribute name key.
+ *	JSON attribute key name.
  */
 #define KEY_URL "file_url"					/*	JSON attribute name for file URL.	*/
 #define KEY_URL_SIZE "file_size"			/*	JSON attribute name*/
@@ -232,7 +232,7 @@ const char* getVersion(void){
 }
 
 /**
- *
+ *	Debug print formated.
  */
 void debug_printf(const char* format, ...){
 	va_list vl;
@@ -392,6 +392,7 @@ char* construct_tag_lvalue(const char* opts, unsigned int rating){
 		strcat(tag, "+order%3Arandom" );
 	}
 
+
 	return tag;
 }
 
@@ -516,7 +517,7 @@ int main(int argc, char *const * argv){
 		{"not-secure", 		no_argument, 		0, 'n'},	/*	Force unsecure connection.	*/
 		{"compression",		no_argument,		0, 'C'},	/*	Enable compression.	*/
 		{"safe-mode", 		no_argument, 		0, 'S'},	/*	Set konachan safe mode.	*/
-		{"explicit-mode",	no_argument, 		0, 'E'},	/**/
+		{"explicit-mode",	no_argument, 		0, 'E'},	/*	Set konachan explict mode.	*/
 		{"random",			no_argument, 		0, 'r'},	/*	Random order.	*/
 		{"tag-list",		no_argument,		0, 'T'},	/*	List tags.	*/
 		{"host", 			required_argument, 	0, 'h'},	/*	Set host to connect to.	*/
@@ -525,7 +526,7 @@ int main(int argc, char *const * argv){
 		{"tags", 			required_argument, 	0, 't'},	/*	Tags used for searching.	*/
 		{"flag", 			required_argument, 	0, 'f'},	/*	Flag */
 		{"port", 			required_argument, 	0, 'P'},	/*	Change port for connecting to webserver.	*/
-		{"id", 				required_argument, 	0, 'i'},	/*	*/
+		{"id", 				required_argument, 	0, 'i'},	/*	Set element.	*/
 		{NULL, 0, NULL, 0}
 	};
 
@@ -678,6 +679,7 @@ int main(int argc, char *const * argv){
 		return EXIT_FAILURE;
 	}
 
+	/*	Release results.	*/
 	freeaddrinfo(result);
 
 
