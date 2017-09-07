@@ -83,22 +83,22 @@ extern const char* tags_tag_json;
 /**
  *	Flag keyword.
  */
-#define FLAG_KEY_URL "url"
-#define FLAG_KEY_URL_SIZE "size"
-#define FLAG_KEY_PREVIEW_URL "preview"
-#define FLAG_KEY_PREVIEW_SIZE "preview_size"
-#define FLAG_KEY_SAMPLE_URL "sample"
-#define FLAG_KEY_SAMPLE_SIZE "sampe_size"
-#define FLAG_KEY_TAGS "tags"
-#define FLAG_KEY_ID "id"
-#define FLAG_KEY_JPEG_URL "jpeg_url"
-#define FLAG_KEY_JPEG_SIZE "jpeg_size"
-#define FLAG_KEY_PNG_URL "png_url"
-#define FLAG_KEY_PNG_SIZE "png_size"
-#define FLAG_KEY_SCORE "score"
-#define FLAG_KEY_MD5 "md5"
-#define FLAG_KEY_SOURCE "source"
-#define FLAG_KEY_NAME "name"
+#define FLAG_KEY_URL "url"                      /*	*/
+#define FLAG_KEY_URL_SIZE "size"                /*	*/
+#define FLAG_KEY_PREVIEW_URL "preview"          /*	*/
+#define FLAG_KEY_PREVIEW_SIZE "preview_size"    /*	*/
+#define FLAG_KEY_SAMPLE_URL "sample"            /*	*/
+#define FLAG_KEY_SAMPLE_SIZE "sampe_size"       /*	*/
+#define FLAG_KEY_TAGS "tags"                    /*	*/
+#define FLAG_KEY_ID "id"                        /*	*/
+#define FLAG_KEY_JPEG_URL "jpeg_url"            /*	*/
+#define FLAG_KEY_JPEG_SIZE "jpeg_size"          /*	*/
+#define FLAG_KEY_PNG_URL "png_url"              /*	*/
+#define FLAG_KEY_PNG_SIZE "png_size"            /*	*/
+#define FLAG_KEY_SCORE "score"                  /*	*/
+#define FLAG_KEY_MD5 "md5"                      /*	*/
+#define FLAG_KEY_SOURCE "source"                /*	*/
+#define FLAG_KEY_NAME "name"                    /*	*/
 
 /**
  *	Rating mode
