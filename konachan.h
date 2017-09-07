@@ -113,18 +113,18 @@ extern const char* tags_tag_json;
 #define KEY_URL_SIZE "file_size"			/*	JSON attribute name*/
 #define KEY_PREVIEW "preview_url"			/*	JSON attribute name*/
 #define KEY_PREVIEW_SIZE "preview_url"			/*	Not supported.	*/
-#define KEY_SAMPLE_URL "sample_url"			/*	*/
-#define KEY_SAMPLE_URL_SIZE "sample_file_size"
-#define KEY_TAGS "tags"
-#define KEY_ID "id"
-#define KEY_JPEG_URL "jpeg_url"
-#define KEY_JPEG_SIZE "jpeg_file_size"
-#define KEY_PNG_URL "png_url"
-#define KEY_PNG_SIZE "png_file_size"
-#define KEY_SCORE "score"
-#define KEY_MD5 "md5"
-#define KEY_SOURCE "source"
-#define KEY_NAME "name"
+#define KEY_SAMPLE_URL "sample_url"                     /*	*/
+#define KEY_SAMPLE_URL_SIZE "sample_file_size"          /*	*/
+#define KEY_TAGS "tags"                                 /*	*/
+#define KEY_ID "id"                                     /*	*/
+#define KEY_JPEG_URL "jpeg_url"                         /*	*/
+#define KEY_JPEG_SIZE "jpeg_file_size"                  /*	*/
+#define KEY_PNG_URL "png_url"                           /*	*/
+#define KEY_PNG_SIZE "png_file_size"                    /*	*/
+#define KEY_SCORE "score"                               /*	*/
+#define KEY_MD5 "md5"                                   /*	*/
+#define KEY_SOURCE "source"                             /*	*/
+#define KEY_NAME "name"                                 /*	*/
 
 
 /**
