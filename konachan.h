@@ -25,12 +25,12 @@
 #include <string.h>
 
 /**
- *	Forward variable decleration.
+ *	Forward declaration of
+ *	global constant variables.
  */
 extern const char* flag_name_table[];
 extern const unsigned int flag_value_table[];
 extern const char* flag_name_key_table[];
-
 
 /**
  *	Global variables.
@@ -83,10 +83,10 @@ extern const char* tags_tag_json;
 /**
  *	Flag keyword.
  */
-#define FLAG_KEY_URL "url"                      /*	*/
-#define FLAG_KEY_URL_SIZE "size"                /*	*/
-#define FLAG_KEY_PREVIEW_URL "preview"          /*	*/
-#define FLAG_KEY_PREVIEW_SIZE "preview_size"    /*	*/
+#define FLAG_KEY_URL "url"                      /*	The full size image URL.*/
+#define FLAG_KEY_URL_SIZE "size"                /*	The full sized image size in bytes.	*/
+#define FLAG_KEY_PREVIEW_URL "preview"          /*	The preview image URL.	*/
+#define FLAG_KEY_PREVIEW_SIZE "preview_size"    /*	The preview image size in bytes.	*/
 #define FLAG_KEY_SAMPLE_URL "sample"            /*	*/
 #define FLAG_KEY_SAMPLE_SIZE "sampe_size"       /*	*/
 #define FLAG_KEY_TAGS "tags"                    /*	*/
@@ -95,8 +95,8 @@ extern const char* tags_tag_json;
 #define FLAG_KEY_JPEG_SIZE "jpeg_size"          /*	*/
 #define FLAG_KEY_PNG_URL "png_url"              /*	*/
 #define FLAG_KEY_PNG_SIZE "png_size"            /*	*/
-#define FLAG_KEY_SCORE "score"                  /*	*/
-#define FLAG_KEY_MD5 "md5"                      /*	*/
+#define FLAG_KEY_SCORE "score"                  /*	Get the current score of the entry.	*/
+#define FLAG_KEY_MD5 "md5"                      /*	Get the MD5 checksum.*/
 #define FLAG_KEY_SOURCE "source"                /*	*/
 #define FLAG_KEY_NAME "name"                    /*	*/
 
@@ -109,45 +109,120 @@ extern const char* tags_tag_json;
 /**
  *	JSON attribute key name.
  */
-#define KEY_URL "file_url"				/*	JSON attribute name for file URL.	*/
-#define KEY_URL_SIZE "file_size"			/*	JSON attribute name*/
-#define KEY_PREVIEW "preview_url"			/*	JSON attribute name*/
-#define KEY_PREVIEW_SIZE "preview_url"			/*	Not supported.	*/
-#define KEY_SAMPLE_URL "sample_url"                     /*	*/
-#define KEY_SAMPLE_URL_SIZE "sample_file_size"          /*	*/
-#define KEY_TAGS "tags"                                 /*	*/
-#define KEY_ID "id"                                     /*	*/
-#define KEY_JPEG_URL "jpeg_url"                         /*	*/
-#define KEY_JPEG_SIZE "jpeg_file_size"                  /*	*/
-#define KEY_PNG_URL "png_url"                           /*	*/
-#define KEY_PNG_SIZE "png_file_size"                    /*	*/
-#define KEY_SCORE "score"                               /*	*/
-#define KEY_MD5 "md5"                                   /*	*/
-#define KEY_SOURCE "source"                             /*	*/
-#define KEY_NAME "name"                                 /*	*/
+#define KEY_URL "file_url"                          /*	JSON attribute name for file URL.	*/
+#define KEY_URL_SIZE "file_size"                    /*	JSON attribute name*/
+#define KEY_PREVIEW "preview_url"                   /*	JSON attribute name*/
+#define KEY_PREVIEW_SIZE "preview_url"              /*	Not supported.	*/
+#define KEY_SAMPLE_URL "sample_url"                 /*	*/
+#define KEY_SAMPLE_URL_SIZE "sample_file_size"		/*	*/
+#define KEY_TAGS "tags"                             /*	*/
+#define KEY_ID "id"                                 /*	*/
+#define KEY_JPEG_URL "jpeg_url"                     /*	*/
+#define KEY_JPEG_SIZE "jpeg_file_size"              /*	*/
+#define KEY_PNG_URL "png_url"                       /*	*/
+#define KEY_PNG_SIZE "png_file_size"                /*	*/
+#define KEY_SCORE "score"                           /*	*/
+#define KEY_MD5 "md5"                               /*	*/
+#define KEY_SOURCE "source"                         /*	*/
+#define KEY_NAME "name"                             /*	*/
 
 
 /**
- *	Forward function declaration.
+ *	Get version of the program.
+ *	@Return non-null terminated string.
  */
 extern const char* getVersion(void);
+
+/**
+ *	Print debug information.	
+ */
 extern void debug_printf(const char* format, ...);
+
+/**
+ *	Remove escape character from strings.
+ */
 extern void simple_remove_escape_str(char* str);
+
+/**
+ *	Get value associated with attribute key.
+ *	@Return value as non-null terminated string.
+ */
 extern const char* get_json_value_by_key(struct json_object* __restrict__ json,
 		const char* __restrict__ key);
+/**
+ *	Extract json from HTTP response.
+ *	@Return non-null terminated string if successful.
+ */
 extern char* simple_extract_json_body(char* str);
+
+/**
+ *
+ */
 extern char* simple_extract_html_header(char* __restrict__ str,
 		int* __restrict__ headerlen);
+/**
+ *	Check if HTTP response body uses
+ *	GZIP compression.
+ *
+ *	@Return non-zero if using compression, 0 otherwise.
+ */
 extern int http_use_gzip_encoding(const char* header);
+
+/**
+ *	Allocate tag.
+ *	@Return
+ */
 extern char* allocate_tag_header(size_t size);
+
+/**
+ *
+ */
 extern char* construct_tag_lvalue(const char* opts, unsigned int rating);
+
+/**
+ *	Read the flag options for which informatio to be extracted
+ *	from the JSON result.
+ */
 extern void read_flag_options(const char* __restrict__ optarg,
 		unsigned int** __restrict__ lorder, unsigned int* count);
+/**
+ *
+ */
 extern unsigned int get_str_value_to_enum(const char* opt);
+
+/**
+ *
+ */
 extern void print_format(const char*);
+/**
+ *
+ */
 extern const char* get_http_filename(unsigned int mode);
 
+/**
+ *	Read option argument from command line.
+ */
+extern void kc_readargument(unsigned int argc, const char** argv);
 
+/**
+ *	Connect to the server with a TCP conncetion
+ *	on specified port.
+ *	@Return
+ */
+extern int kc_connect(unsigned int mode, const char* address, unsigned int port);
 
+/**
+ *	Write to currently connected socket. Where it handle if
+ *	TLS/SSL is enabled or not.
+ *	@Return
+ */
+extern int kc_write(const void* buffer, unsigned int len);
+
+/**
+ *	Read from the currently connected socket. Where it handle
+ *	if TLS/SSL is enabled or not.
+ *	@Return
+ */
+extern int kc_read(void* buffer, unsigned int len);
 
 #endif
