@@ -381,7 +381,7 @@ int main(int argc, char *const * argv){
 
 	/*	Check parsing errors.	*/
 	if(is_error(j1)){
-		fprintf(stderr, "%s\n", json_tokener_errors[json_error]);
+		fprintf(stderr, "%s\n", json_tokener_error_desc(json_error));
 		status = EXIT_FAILURE;
 		goto error;
 	}
