@@ -38,9 +38,6 @@ unsigned int g_mode = MODE_POST;
 const char* post_tag_json = "post.json";
 const char* tags_tag_json = "tag.json";
 
-/**
- *
- */
 const char* flag_name_table[] = {
 	FLAG_KEY_URL,
 	FLAG_KEY_URL_SIZE,
@@ -61,9 +58,6 @@ const char* flag_name_table[] = {
 	NULL
 };
 
-/**
- *
- */
 const unsigned int flag_value_table[] = {
 	FLAG_URL,
 	FLAG_URL_SIZE,
@@ -83,9 +77,6 @@ const unsigned int flag_value_table[] = {
 	FLAG_NAME,
 };
 
-/**
- *
- */
 const char* flag_name_key_table[] = {
 	KEY_URL,
 	KEY_URL_SIZE,
@@ -106,13 +97,12 @@ const char* flag_name_key_table[] = {
 	NULL
 };
 
-
-
-/**
- *	@Return get version string.
- */
 const char* getVersion(void){
 	return KONACHAN_STR_VERSION;
+}
+
+void kc_readargument(unsigned int argc, const char** argv){
+
 }
 
 /**
@@ -128,9 +118,6 @@ void debug_printf(const char* format, ...){
 	}
 }
 
-/**
- *
- */
 void simple_remove_escape_str(char* str){
 	char* pstr;
 
@@ -347,3 +334,7 @@ const char* get_http_filename(unsigned int mode){
 		return "";
 	}
 }
+
+int kc_connect(unsigned int mode, const char* address, unsigned int port){}
+int kc_write(const void* buffer, unsigned int len){}
+int kc_read(void* buffer, unsigned int len){}
