@@ -38,7 +38,7 @@ install : $(TARGET)
 	@echo "Installing konachan.\n"
 	$(MKDIR) $(INSTALL_LOCATION)/bin
 	$(CP) $(TARGET) $(INSTALL_LOCATION)/bin
-	$(CP) konachan.bc /etc/bash_completion.d/konachan
+	$(CP) konachan.bc $(INSTALL_LOCATION)/share/bash-completion/completions/konachan
 
 
 distribution : $(TARGET)
