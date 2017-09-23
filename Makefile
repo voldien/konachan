@@ -30,6 +30,10 @@ $(TARGET) : CFLAGS += -DNDEBUG
 $(TARGET) : $(OBJS)
 	$(CC) $(CLFAGS) $^ -o $@ $(CLIBS)
 
+debug : CFLAGS += -DDEBUG -g3 -o0
+debug : $(OBJS)
+	$(CC) $(CFLAGS) $^ -o $(TARGET) $(CLIBS)
+
 %.o : %.c
 	$(CC) $(CFLAGS) -c $^ -o $@
 
