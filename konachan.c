@@ -512,11 +512,12 @@ int kcConnect(KCConection* connection, unsigned int mode, int af,
 		const char* address, unsigned int port){
 
 	/*	Sockets.	*/
-	int s;	struct sockaddr_in addr4;
+	int status = 1;
+	int s;
+	struct sockaddr_in addr4;
 	socklen_t soclen;
 	struct sockaddr_in6 addr6;
 	struct sockaddr* addr;
-	int sock = -1;
 	int sslcode;
 	struct addrinfo hints;
 	struct addrinfo *result, *rp;
@@ -537,8 +538,8 @@ int kcConnect(KCConection* connection, unsigned int mode, int af,
 
 	/*	Create socket.	*/
 	af = result->ai_family;
-	sock = socket(af, SOCK_STREAM, 0);
-	if(sock < 0){
+	connection->sock = socket(af, SOCK_STREAM, 0);
+	if(connection->sock  < 0){
 		fprintf(stderr, "socket failed, %s.\n", strerror(errno));
 		return EXIT_FAILURE;
 	}
@@ -564,7 +565,7 @@ int kcConnect(KCConection* connection, unsigned int mode, int af,
 		break;
 	default:
 		fprintf(stderr, "Invalid address family.\n");
-		close(sock);
+		close(connection->sock );
 		return EXIT_FAILURE;
 	}
 
@@ -573,9 +574,9 @@ int kcConnect(KCConection* connection, unsigned int mode, int af,
 
 
 	/*	TCP connection.	*/
-	if( connect(sock, addr, soclen ) < 0 ){
+	if( connect(connection->sock , addr, soclen ) < 0 ){
 		fprintf(stderr, "Failed to connect to %s, %s\n", g_host, strerror(errno));
-		sock = EXIT_FAILURE;
+		status = 0;
 		goto error;
 	}
 
@@ -583,14 +584,14 @@ int kcConnect(KCConection* connection, unsigned int mode, int af,
 	if( g_secure ){
 		SSL_load_error_strings ();
 		if( SSL_library_init () < 0){
-			sock = EXIT_FAILURE;
+			status = 0;
 			goto error;
 		}
 
-		/**/
+		/*	Create context.	*/
 		connection->ssl_ctx = SSL_CTX_new (TLSv1_2_client_method ());
 		if( connection->ssl_ctx == NULL){
-			sock = EXIT_FAILURE;
+			status = 0;
 			goto error;
 		}
 
@@ -598,15 +599,15 @@ int kcConnect(KCConection* connection, unsigned int mode, int af,
 
 		/* create an SSL connection and attach it to the socket	*/
 		connection->conn = SSL_new(connection->ssl_ctx);
-		if( SSL_set_fd(connection->conn, sock) == 0){
-			sock = EXIT_FAILURE;
+		if( SSL_set_fd(connection->conn, connection->sock ) == 0){
+			status = 0;
 			goto error;
 		}
 
 		/*	Connect by performing TLS/SSL handshake with server.	*/
 		if( (sslcode = SSL_connect(connection->conn)) != 1 ){
 			fprintf(stderr, "Failed to SSL connect, code %d.\n", SSL_get_error(connection->conn, sslcode));		/*	ERR_error_string(sslcode, NULL)	*/
-			sock = EXIT_FAILURE;
+			status = 0;
 			goto error;
 		}
 
@@ -624,7 +625,7 @@ int kcConnect(KCConection* connection, unsigned int mode, int af,
 
 	error:
 
-	return sock;
+	return status;
 }
 
 void kcDisconnect(KCConection* connection){
