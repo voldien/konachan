@@ -131,14 +131,16 @@ extern unsigned int g_mode;               /*	*/
 #define KEY_NAME "name"                             /*	*/
 
 /**
- *
+ *	Function decleration.
  */
 struct kc_connection_t;
 typedef int (*PWRITE)(struct kc_connection_t* __restrict__ connection, const void* __restrict__ pbuf, int l);
 typedef int (*PREAD)(struct kc_connection_t* __restrict__ connection, void* __restrict__ pbuf, int l);
 
 /**
- *
+ *	Connection containing
+ *	both non and secure assoicated
+ *	data.
  */
 typedef struct kc_connection_t{
 	int sock;       /*	file descriptor socket.	*/
@@ -150,7 +152,6 @@ typedef struct kc_connection_t{
 	/*	Read and write function pointers.	*/
 	PWRITE write;
 	PREAD read;
-
 }KCConection;
 
 /**

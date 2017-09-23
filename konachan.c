@@ -7,7 +7,6 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <assert.h>
 #include <json-c/json.h>
 #include <json-c/json_object.h>
 #include <json-c/json_tokener.h>
@@ -162,7 +161,6 @@ const char* kcGetJSONValueByKey(struct json_object* json, const char* key){
 	}
 }
 
-
 char* kcSimpleExtractJSONBody(char* str){
 
 	char* b = strchr(str, '[');
@@ -174,7 +172,6 @@ char* kcSimpleExtractJSONBody(char* str){
 
 	return b;
 }
-
 
 char* kcSimpleExtractHtmlHeader(char* str, int* headerlen){
 
@@ -198,9 +195,6 @@ char* kcSimpleExtractHtmlHeader(char* str, int* headerlen){
 	return header;
 }
 
-/**
- *	Check if content encoding set to gzip.
- */
 int kcUseHTTPGZipEncoding(const char* header){
 
 	char buf[128];
@@ -215,21 +209,12 @@ int kcUseHTTPGZipEncoding(const char* header){
 	return 0;
 }
 
-/**
- *	Allocate tag header.
- *
- *	@Return
- */
 char* kcAllocateTagHeader(size_t size){
 	g_tags = realloc(g_tags, size);
 	assert(g_tags);
 	return g_tags;
 }
 
-/**
- *	Construct tag string for HTTP can
- *	interpret.
- */
 char* kcConstructTagLValue(const char* opts, unsigned int rating){
 
 	char* tag;
@@ -263,10 +248,6 @@ char* kcConstructTagLValue(const char* opts, unsigned int rating){
 	return tag;
 }
 
-
-/**
- *	Read flag options.
- */
 void kcReadFlagOptions(const char* optarg, unsigned int** lorder,
 		unsigned int* count){
 
@@ -330,7 +311,6 @@ const char* kcGetHTTPFilename(unsigned int mode){
 		return "";
 	}
 }
-
 
 int kcSendRecv(KCConection* connection, void** recv){
 
@@ -572,7 +552,6 @@ int kcConnect(KCConection* connection, unsigned int mode, int af,
 	/*	Release results.	*/
 	freeaddrinfo(result);
 
-
 	/*	TCP connection.	*/
 	if( connect(connection->sock , addr, soclen ) < 0 ){
 		fprintf(stderr, "Failed to connect to %s, %s\n", g_host, strerror(errno));
@@ -611,13 +590,13 @@ int kcConnect(KCConection* connection, unsigned int mode, int af,
 			goto error;
 		}
 
-		/*	*/
+		/*	Assign function pointer for secure read and write.	*/
 		connection->write = (PWRITE)kcSecWrite;
 		connection->read = (PREAD)kcSecRead;
 		connection->secure = 1;
 
 	}else{
-		/*	*/
+		/*	Assign function pointer for non-secure read and write.	*/
 		connection->secure = 0;
 		connection->write = (PWRITE)kcNSecWrite;
 		connection->read = (PREAD)kcNSecRead;

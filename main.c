@@ -19,7 +19,6 @@ int main(int argc, char *const * argv){
 	struct kc_connection_t connection = {0};
 
 	/*	Sockets.	*/
-	int s;
 	int af = AF_UNSPEC;
 
 	/*	Get option for long options.	*/
@@ -144,23 +143,25 @@ int main(int argc, char *const * argv){
 		return EXIT_FAILURE;
 	}
 
-	/*	*/
+	/*	Connect to server.	*/
 	if(!kcConnect(&connection, g_secure, af, g_host, g_port)){
 		fprintf(stderr, "Failed creating connection.\n");
 		return EXIT_FAILURE;
 	}
 
-	/*	*/
+	/*	Send HTTP command and recv response.	*/
 	resp_len = kcSendRecv(&connection, &json_serv);
 
 	/*	Disconnect.	*/
 	kcDisconnect(&connection);
 
-	/*	Check.	*/
-	if(resp_len <= 0 || json_serv == NULL)
+	/*	Check if response is valid.	*/
+	if(resp_len <= 0 || json_serv == NULL){
+		fprintf(stderr, "Invalid response from server.");
 		return EXIT_FAILURE;
+	}
 
-	/*	*/
+	/*	Decode and display output.	*/
 	if(!kcDecodeInput(json_serv, resp_len, forder, nflags)){
 		return EXIT_FAILURE;
 	}
