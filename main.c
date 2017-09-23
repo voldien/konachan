@@ -146,6 +146,7 @@ int main(int argc, char *const * argv){
 
 	/*	*/
 	if(!kcConnect(&connection, g_secure, af, g_host, g_port)){
+		fprintf(stderr, "Failed creating connection.\n");
 		return EXIT_FAILURE;
 	}
 
