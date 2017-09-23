@@ -610,14 +610,16 @@ int kcConnect(KCConection* connection, unsigned int mode, int af,
 			goto error;
 		}
 
-		connection->write = kcSecWrite;
-		connection->read = kcSecRead;
+		/*	*/
+		connection->write = (PWRITE)kcSecWrite;
+		connection->read = (PREAD)kcSecRead;
 		connection->secure = 1;
 
 	}else{
+		/*	*/
 		connection->secure = 0;
-		connection->write = kcNSecWrite;
-		connection->read = kcNSecRead;
+		connection->write = (PWRITE)kcNSecWrite;
+		connection->read = (PREAD)kcNSecRead;
 	}
 
 	error:
