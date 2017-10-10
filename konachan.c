@@ -362,7 +362,7 @@ int kcSendRecv(KCConection* connection, void** recv){
 int kcDecodeInput(char* json_serv, int json_len, const unsigned int* forder, int nflags){
 
 	/*	*/
-	int status  = 0;
+	int status  = 1;
 	int len;
 	int comlen;
 	char inbuf[4096];
@@ -389,7 +389,7 @@ int kcDecodeInput(char* json_serv, int json_len, const unsigned int* forder, int
 	/*	Parse HTTP's response header.	*/
 	httpheader = kcSimpleExtractHtmlHeader(json_serv, &httphlen);
 	if(httpheader == NULL){
-		status = EXIT_FAILURE;
+		status = 0;
 		goto error;
 	}
 	kcDebugPrintf(httpheader);
@@ -418,7 +418,7 @@ int kcDecodeInput(char* json_serv, int json_len, const unsigned int* forder, int
 	/*	Check parsing errors.	*/
 	if(is_error(j1)){
 		fprintf(stderr, "%s\n", json_tokener_error_desc(json_error));
-		status = EXIT_FAILURE;
+		status = 0;
 		goto error;
 	}
 
@@ -521,7 +521,7 @@ int kcConnect(KCConection* connection, unsigned int mode, int af,
 	connection->sock = socket(af, SOCK_STREAM, 0);
 	if(connection->sock  < 0){
 		fprintf(stderr, "socket failed, %s.\n", strerror(errno));
-		return EXIT_FAILURE;
+		return 0;
 	}
 
 	/*	init socket address.	*/
@@ -546,7 +546,7 @@ int kcConnect(KCConection* connection, unsigned int mode, int af,
 	default:
 		fprintf(stderr, "Invalid address family.\n");
 		close(connection->sock );
-		return EXIT_FAILURE;
+		return 0;
 	}
 
 	/*	Release results.	*/
